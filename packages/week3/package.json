@@ -5,6 +5,9 @@
 	"license": "MIT",
 	"scripts": {
 		"compile": "hardhat compile --quiet",
+		"deploy": "hardhat run",
+		"verify": "npx hardhat verify --network goerli",
+		"test": "hardhat test",
 		"watch": "remixd -s . --remix-ide https://remix.ethereum.org"
 	},
 	"devDependencies": {
@@ -18,6 +21,9 @@
 		"@remix-project/remixd": "^0.6.5",
 		"@typechain/ethers-v5": "^10.1.0",
 		"@typechain/hardhat": "^6.1.2",
+		"@types/chai": "^4.3.3",
+		"@types/mocha": "^9.1.1",
+		"@types/node": "^18.7.13",
 		"chai": "^4.3.6",
 		"dotenv": "^16.0.1",
 		"ethers": "^5.7.0",

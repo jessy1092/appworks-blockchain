@@ -5,3 +5,4 @@ AppWorks Blockchain Course
 
 - Solidity 合約：hardhat
 - 前端：Vite + React + TypeScript
+- Code formatter：Prettier
