@@ -14,6 +14,9 @@ yarn add hardhat
 npx hardhat
 ```
 
+> 以下 dependency 安裝，只需第一次駕環境使用，現在 package.json 已經有 dependency 所以直接 `yarn` 就可以了
+> ref: https://hardhat.org/hardhat-runner/plugins/nomicfoundation-hardhat-toolbox
+
 3. 本地端 compile/test/deploy 所需 dependency（使用 yarn 的話，要主動安裝這些套件）
 
 ```
