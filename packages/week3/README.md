@@ -1,6 +1,6 @@
 # Sample Hardhat Project
 
-# 環境設定
+## 環境設定
 
 1. 安裝 hardhat
 
@@ -42,7 +42,7 @@ yarn add @remix-project/remixd --dev
 yarn add prettier-plugin-solidity --dev
 ```
 
-# 環境參數
+## 環境參數
 
 建立 `.env` 檔案，填入以下的值（範例在 `.env.example`）
 
@@ -50,7 +50,7 @@ yarn add prettier-plugin-solidity --dev
 - `ALCHEMY_API_KEY`: [alchemy](https://dashboard.alchemy.com/) 服務的 API key，作為 RPC 連接測試網節點用
 - `ETHERSCAN_API_KEY`: [etherscan](https://etherscan.io/) 服務，上傳驗證合約原始碼用
 
-# 開發
+## 開發
 
 1. Compile
 
