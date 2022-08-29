@@ -68,3 +68,9 @@ yarn verify 0x00a7f379FD4c6802a972398a352053862410DE51 1661616400
 ```
 yarn watch
 ```
+
+6. 起本地端的測試節點（使用 hardhat）
+
+```
+yarn blocknode
+```

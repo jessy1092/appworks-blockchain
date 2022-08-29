@@ -11,7 +11,7 @@ yarn add hardhat
 2. 初始化 hardhat 專案
 
 ```
-npx hardhat
+npx hardhat // 看個人喜好選擇，這邊是選擇 typescript
 ```
 
 > 以下 dependency 安裝，只需第一次駕環境使用，現在 package.json 已經有 dependency 所以直接 `yarn` 就可以了
@@ -94,4 +94,10 @@ yarn verify 0x00a7f379FD4c6802a972398a352053862410DE51 1661616400
 
 ```
 yarn watch
+```
+
+6. 起本地端的測試節點（使用 hardhat）
+
+```
+yarn blocknode
 ```

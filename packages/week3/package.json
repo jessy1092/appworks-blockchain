@@ -8,7 +8,9 @@
 		"deploy": "hardhat run",
 		"verify": "npx hardhat verify --network goerli",
 		"test": "hardhat test",
-		"watch": "remixd -s . --remix-ide https://remix.ethereum.org"
+		"blocknode": "hardhat node",
+		"watch": "remixd -s . --remix-ide https://remix.ethereum.org",
+		"clean": "rm -rf .deps && rm -rf artifacts && rm -rf cache && rm -rf node_modules && rm -rf typechain-types"
 	},
 	"devDependencies": {
 		"@ethersproject/abi": "^5.7.0",
