@@ -14,6 +14,34 @@ contract Basic {
 	address public MY_ADDR_2 = 0x1A24f7B01087665AF51EfC816aC1a96D813C6db5;
 	bytes32 public b32 = 0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef;
 
+	bytes1 public b1 = 0xf0;
+	bytes public bytes_array;
+	bytes1[] public b1_array;
+
+	function b_push(bytes1 n) external {
+		bytes_array.push(n);
+	}
+
+	function b_pop() external {
+		bytes_array.pop();
+	}
+
+	function b_length() external view returns (uint256) {
+		return bytes_array.length;
+	}
+
+	function b1_push(bytes1 n) external {
+		b1_array.push(n);
+	}
+
+	function b1_pop() external {
+		b1_array.pop();
+	}
+
+	function b1_length() external view returns (uint256) {
+		return b1_array.length;
+	}
+
 	function ifelse(uint32 _x) external pure returns (uint32) {
 		if (_x < 10) {
 			return 1;
