@@ -14,7 +14,7 @@ AppWorks Blockchain Course
 yarn
 ```
 
-PS. 想從零開始建置 hardhat ，可以參考 [Week3](../week3/README.md)
+PS. 想從零開始建置 hardhat ，可以參考 [Week3](./packages/week3/README.md)
 
 ## 執行
 
