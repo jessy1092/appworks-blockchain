@@ -1,7 +1,6 @@
 {
 	"name": "@app-block/week3",
 	"version": "1.0.0",
-	"main": "index.js",
 	"license": "MIT",
 	"scripts": {
 		"compile": "hardhat compile --quiet",
@@ -23,6 +22,7 @@
 		"@remix-project/remixd": "^0.6.5",
 		"@typechain/ethers-v5": "^10.1.0",
 		"@typechain/hardhat": "^6.1.2",
+		"@typechain/web3-v1": "^6.0.1",
 		"@types/chai": "^4.3.3",
 		"@types/mocha": "^9.1.1",
 		"@types/node": "^18.7.13",
