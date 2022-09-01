@@ -104,7 +104,7 @@ export const useTWDFContract = (myAddress: string) => {
 		console.log('approve??????', contract);
 		if (contract !== null) {
 			const recipt = await contract.methods
-				.approve(TWDF_VAULT_CONTRACT, (balance * 10n ** 18n).toString())
+				.approve(TWDF_VAULT_CONTRACT, (balance * 10n ** 18n) as any)
 				.send();
 
 			console.log('approve finish', recipt);
@@ -135,9 +135,7 @@ export const useTWDFVaultContract = (myAddress: string) => {
 	const deposit = async (number: bigint) => {
 		console.log('deposit??????', contract);
 		if (contract !== null) {
-			const recipt = await contract.methods
-				.deposit((number * 10n ** 18n).toString(), myAddress)
-				.send();
+			const recipt = await contract.methods.deposit((number * 10n ** 18n) as any, myAddress).send();
 
 			console.log('deposit finish', recipt);
 
@@ -149,7 +147,7 @@ export const useTWDFVaultContract = (myAddress: string) => {
 		console.log('withdraw??????', contract);
 		if (contract !== null) {
 			const recipt = await contract.methods
-				.withdraw((number * 10n ** 18n).toString(), myAddress, myAddress)
+				.withdraw((number * 10n ** 18n) as any, myAddress, myAddress)
 				.send();
 
 			console.log('withdraw finish', recipt);
@@ -161,9 +159,7 @@ export const useTWDFVaultContract = (myAddress: string) => {
 	const mint = async (number: bigint) => {
 		console.log('mint??????', contract);
 		if (contract !== null) {
-			const recipt = await contract.methods
-				.mint((number * 10n ** 18n).toString(), myAddress)
-				.send();
+			const recipt = await contract.methods.mint((number * 10n ** 18n) as any, myAddress).send();
 
 			console.log('mint finish', recipt);
 
@@ -175,7 +171,7 @@ export const useTWDFVaultContract = (myAddress: string) => {
 		console.log('redeem??????', contract);
 		if (contract !== null) {
 			const recipt = await contract.methods
-				.redeem((number * 10n ** 18n).toString(), myAddress, myAddress)
+				.redeem((number * 10n ** 18n) as any, myAddress, myAddress)
 				.send();
 
 			console.log('redeem finish', recipt);
