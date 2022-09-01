@@ -1,13 +1,13 @@
 import React, { useCallback, useContext, useEffect, useState } from 'react';
 import Web3 from 'web3';
 import { AbiItem } from 'web3-utils';
-import { Contract } from 'web3-eth-contract';
 
 import TWDFAbi from '@app-block/erc4626/artifacts/contracts/TWDF.sol/TWDF.json';
 import TWDFVaultAbi from '@app-block/erc4626/artifacts/contracts/TWDFVault.sol/TWDFVault.json';
 
 import { normalizeNum } from '../utility';
 import { TWDF_VAULT_CONTRACT } from './vault';
+import { TWDF, TWDFVault } from '@app-block/erc4626/typechain-types/contracts';
 
 export const isSupportWeb3 =
 	typeof window.ethereum !== 'undefined' && typeof window.ethereum.request !== 'undefined';
@@ -44,7 +44,7 @@ export const useWallet = () => {
 export const useTWDFContract = (myAddress: string) => {
 	const { wallet } = useWallet();
 	const [balance, setBalance] = useState<bigint>(0n);
-	const [contract, setContract] = useState<null | Contract>(null);
+	const [contract, setContract] = useState<null | TWDF>(null);
 	const [isNeedApprove, setIsNeedApprove] = useState<boolean>(true);
 
 	const getBalance = useCallback(async () => {
@@ -75,7 +75,8 @@ export const useTWDFContract = (myAddress: string) => {
 				const contract = new wallet.eth.Contract(TWDFAbi.abi as AbiItem[], TWDF_CONTRACT, {
 					from: myAddress, // default from address
 					gasPrice: '500000000',
-				});
+				}) as any as TWDF;
+
 				setContract(contract);
 			}
 		};
@@ -103,7 +104,7 @@ export const useTWDFContract = (myAddress: string) => {
 		console.log('approve??????', contract);
 		if (contract !== null) {
 			const recipt = await contract.methods
-				.approve(TWDF_VAULT_CONTRACT, balance * 10n ** 18n)
+				.approve(TWDF_VAULT_CONTRACT, (balance * 10n ** 18n).toString())
 				.send();
 
 			console.log('approve finish', recipt);
@@ -118,7 +119,7 @@ export const useTWDFContract = (myAddress: string) => {
 export const useTWDFVaultContract = (myAddress: string) => {
 	const { wallet } = useWallet();
 	const [balance, setBalance] = useState<bigint>(0n);
-	const [contract, setContract] = useState<null | Contract>(null);
+	const [contract, setContract] = useState<null | TWDFVault>(null);
 
 	const getBalance = useCallback(async () => {
 		if (contract !== null) {
@@ -134,7 +135,9 @@ export const useTWDFVaultContract = (myAddress: string) => {
 	const deposit = async (number: bigint) => {
 		console.log('deposit??????', contract);
 		if (contract !== null) {
-			const recipt = await contract.methods.deposit(number * 10n ** 18n, myAddress).send();
+			const recipt = await contract.methods
+				.deposit((number * 10n ** 18n).toString(), myAddress)
+				.send();
 
 			console.log('deposit finish', recipt);
 
@@ -146,7 +149,7 @@ export const useTWDFVaultContract = (myAddress: string) => {
 		console.log('withdraw??????', contract);
 		if (contract !== null) {
 			const recipt = await contract.methods
-				.withdraw(number * 10n ** 18n, myAddress, myAddress)
+				.withdraw((number * 10n ** 18n).toString(), myAddress, myAddress)
 				.send();
 
 			console.log('withdraw finish', recipt);
@@ -158,7 +161,9 @@ export const useTWDFVaultContract = (myAddress: string) => {
 	const mint = async (number: bigint) => {
 		console.log('mint??????', contract);
 		if (contract !== null) {
-			const recipt = await contract.methods.mint(number * 10n ** 18n, myAddress).send();
+			const recipt = await contract.methods
+				.mint((number * 10n ** 18n).toString(), myAddress)
+				.send();
 
 			console.log('mint finish', recipt);
 
@@ -170,7 +175,7 @@ export const useTWDFVaultContract = (myAddress: string) => {
 		console.log('redeem??????', contract);
 		if (contract !== null) {
 			const recipt = await contract.methods
-				.redeem(number * 10n ** 18n, myAddress, myAddress)
+				.redeem((number * 10n ** 18n).toString(), myAddress, myAddress)
 				.send();
 
 			console.log('redeem finish', recipt);
@@ -189,7 +194,7 @@ export const useTWDFVaultContract = (myAddress: string) => {
 						from: myAddress, // default from address
 						gasPrice: '500000000',
 					},
-				);
+				) as any as TWDFVault;
 
 				setContract(contract);
 			}

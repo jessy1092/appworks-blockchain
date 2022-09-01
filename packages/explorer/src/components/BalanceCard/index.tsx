@@ -1,5 +1,3 @@
-import { useTWDFContract, useTWDFVaultContract, useWallet } from '../../models/wallet';
-
 import './index.css';
 
 interface BalanceCardProperty {
