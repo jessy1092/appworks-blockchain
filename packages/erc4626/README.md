@@ -17,11 +17,7 @@ PS. 想從零開始建置 hardhat ，可以參考 [Week3](../week3/README.md)
 
 ## 環境參數
 
-建立 `.env` 檔案，填入以下的值（範例在 `.env.example`）
-
-- `GOERLI_PRIVATE_KEY`: 要部署合約用的帳戶私鑰，裡面也要放些 goerli ether
-- `ALCHEMY_API_KEY`: [alchemy](https://dashboard.alchemy.com/) 服務的 API key，作為 RPC 連接測試網節點用
-- `ETHERSCAN_API_KEY`: [etherscan](https://etherscan.io/) 服務，上傳驗證合約原始碼用
+如想環境獨立使用環境變數，可以更改 `dotenv.config({ path: '../../.env' });` 指定想要的環境變數檔案位置
 
 ## 開發
 
