@@ -4,10 +4,10 @@ import { AbiItem } from 'web3-utils';
 
 import TWDFAbi from '@app-block/erc4626/artifacts/contracts/TWDF.sol/TWDF.json';
 import TWDFVaultAbi from '@app-block/erc4626/artifacts/contracts/TWDFVault.sol/TWDFVault.json';
+import { TWDF, TWDFVault } from '@app-block/erc4626/web3-types/contracts';
 
 import { normalizeNum } from '../utility';
 import { TWDF_VAULT_CONTRACT } from './vault';
-import { TWDF, TWDFVault } from '@app-block/erc4626/web3-types/contracts';
 
 export const isSupportWeb3 =
 	typeof window.ethereum !== 'undefined' && typeof window.ethereum.request !== 'undefined';

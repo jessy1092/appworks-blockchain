@@ -1,6 +1,6 @@
 import { ChangeEvent, useState } from 'react';
-import { useVault } from '../../models/vault';
-import { useTWDFContract, useTWDFVaultContract, useWallet } from '../../models/wallet';
+
+import { useVault } from 'models/vault';
 
 import './index.css';
 

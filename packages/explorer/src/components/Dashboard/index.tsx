@@ -1,6 +1,6 @@
-import { useTWDFContract, useTWDFVaultContract, useWallet } from '../../models/wallet';
-import BalanceCard from '../BalanceCard';
-import VaultCard from '../VaultCard';
+import { useTWDFContract, useTWDFVaultContract, useWallet } from 'models/wallet';
+import BalanceCard from 'components/BalanceCard';
+import VaultCard from 'components/VaultCard';
 
 interface DashboardProperty {
 	address: string;
