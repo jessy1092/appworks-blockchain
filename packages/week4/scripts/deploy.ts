@@ -1,8 +1,10 @@
 import { ethers } from 'hardhat';
 
 async function main() {
-	const Contract = await ethers.getContractFactory('Basic');
-	const contract = await Contract.deploy();
+	const lockedAmount = ethers.utils.parseEther('0.01');
+
+	const Contract = await ethers.getContractFactory('CallFunc');
+	const contract = await Contract.deploy({ value: lockedAmount });
 
 	await contract.deployed();
 
