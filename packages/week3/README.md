@@ -51,7 +51,7 @@ yarn add prettier-plugin-solidity --dev
 1. Build (會產生 web3 跟 hardhat test 用的 type definition)
 
 ```
-yarn Build
+yarn build
 ```
 
 2. Test
