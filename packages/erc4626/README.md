@@ -25,10 +25,10 @@ PS. 想從零開始建置 hardhat ，可以參考 [Week3](../week3/README.md)
 
 ## 開發
 
-1. Compile
+1. Build (會產生 web3 跟 hardhat test 用的 type definition)
 
 ```
-yarn compile
+yarn Build
 ```
 
 2. Test

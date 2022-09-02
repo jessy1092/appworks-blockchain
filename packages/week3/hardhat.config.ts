@@ -15,13 +15,15 @@ const config: HardhatUserConfig = {
 	etherscan: {
 		apiKey: process.env.ETHERSCAN_API_KEY,
 	},
-	typechain: {
-		outDir: 'typechain-types',
-		target: 'web3-v1',
-		alwaysGenerateOverloads: false, // should overloads with full signatures like deposit(uint256) be generated always, even if there are no overloads?
-		externalArtifacts: [], // optional array of glob patterns with external artifacts to process (for example external libs from node_modules)
-		dontOverrideCompile: false, // defaults to false
-	},
+	typechain: process.env.HARDHAT_TEST
+		? {
+				outDir: 'test-types', // For hardhat testing usage
+				target: 'ethers-v5',
+		  }
+		: {
+				outDir: 'web3-types', // For external web3 usage
+				target: 'web3-v1',
+		  },
 };
 
 export default config;

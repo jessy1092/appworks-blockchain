@@ -7,7 +7,7 @@ import TWDFVaultAbi from '@app-block/erc4626/artifacts/contracts/TWDFVault.sol/T
 
 import { normalizeNum } from '../utility';
 import { TWDF_VAULT_CONTRACT } from './vault';
-import { TWDF, TWDFVault } from '@app-block/erc4626/typechain-types/contracts';
+import { TWDF, TWDFVault } from '@app-block/erc4626/web3-types/contracts';
 
 export const isSupportWeb3 =
 	typeof window.ethereum !== 'undefined' && typeof window.ethereum.request !== 'undefined';

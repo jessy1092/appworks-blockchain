@@ -3,13 +3,16 @@
 	"version": "1.0.0",
 	"license": "MIT",
 	"scripts": {
-		"compile": "hardhat compile --quiet",
+		"compile": "hardhat compile",
+		"build": "npm run compile && npm run build:test-types",
+		"build:types": "hardhat typechain",
+		"build:test-types": "HARDHAT_TEST=1 hardhat typechain",
 		"deploy": "hardhat run",
 		"verify": "npx hardhat verify --network goerli",
 		"test": "hardhat test",
 		"blocknode": "hardhat node",
 		"watch": "remixd -s . --remix-ide https://remix.ethereum.org",
-		"clean": "rm -rf .deps && rm -rf artifacts && rm -rf cache && rm -rf node_modules && rm -rf typechain-types"
+		"clean": "rm -rf .deps && rm -rf artifacts && rm -rf cache && rm -rf web3-types && rm -rf test-types"
 	},
 	"devDependencies": {
 		"@ethersproject/abi": "^5.7.0",

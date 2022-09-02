@@ -2,7 +2,7 @@ import Web3 from 'web3';
 import { AbiItem } from 'web3-utils';
 
 import TWDFVaultAbi from '@app-block/erc4626/artifacts/contracts/TWDFVault.sol/TWDFVault.json';
-import { TWDFVault } from '@app-block/erc4626/typechain-types/contracts';
+import { TWDFVault } from '@app-block/erc4626/web3-types/contracts';
 import { useEffect, useState } from 'react';
 import { normalizeNum } from '../utility';
 

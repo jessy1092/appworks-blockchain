@@ -10,10 +10,16 @@ ex.
 yarn workspace @app-block/erc4626 compile
 ```
 
-2. 設置環境變數，目前使用一個 Node as Service 給 websocket 用
+2. 設置環境變數 `.env` ，目前使用一個 Node as Service 給 websocket 用
 
 ```
 REACT_APP_WEBSOCKET_KEY=
+```
+
+3. 安裝 dependency
+
+```
+yarn
 ```
 
 ## 開發
