@@ -1,0 +1,2 @@
+export const TWDF_CONTRACT = '0xe37Df5eAa40850b440a40e8E11C0d722142A0fBD';
+export const TWDF_VAULT_CONTRACT = '0xe243ee6884f9f05bc38ca7e0206e3bd6aabbc5b0';

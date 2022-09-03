@@ -5,9 +5,9 @@ import { AbiItem } from 'web3-utils';
 import TWDFAbi from '@app-block/erc4626/artifacts/contracts/TWDF.sol/TWDF.json';
 import TWDFVaultAbi from '@app-block/erc4626/artifacts/contracts/TWDFVault.sol/TWDFVault.json';
 import { TWDF, TWDFVault } from '@app-block/erc4626/web3-types/contracts';
+import { TWDF_CONTRACT, TWDF_VAULT_CONTRACT } from '@app-block/erc4626';
 
 import { normalizeNum } from '../utility';
-import { TWDF_VAULT_CONTRACT } from './vault';
 
 export const isSupportWeb3 =
 	typeof window.ethereum !== 'undefined' && typeof window.ethereum.request !== 'undefined';
@@ -27,8 +27,6 @@ export const checkConnection = async () => {
 		return '';
 	}
 };
-
-const TWDF_CONTRACT = '0xe37Df5eAa40850b440a40e8E11C0d722142A0fBD';
 
 export const Wallet = React.createContext<null | Web3>(null);
 
