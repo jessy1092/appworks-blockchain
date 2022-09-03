@@ -13,7 +13,8 @@
 		"blocknode": "hardhat node",
 		"watch": "remixd -s . --remix-ide https://remix.ethereum.org",
 		"clean": "rm -rf .deps && rm -rf artifacts && rm -rf cache && rm -rf web3-types && rm -rf test-types",
-		"claim": "ts-node node-claim.ts"
+		"claim": "ts-node node-claim.ts",
+		"event": "ts-node node-event.ts"
 	},
 	"devDependencies": {
 		"@ethersproject/abi": "^5.7.0",
@@ -42,6 +43,7 @@
 		"typescript": "^4.8.2"
 	},
 	"dependencies": {
+		"@app-block/erc4626": "^1.0.0",
 		"web3": "^1.7.5"
 	}
 }
