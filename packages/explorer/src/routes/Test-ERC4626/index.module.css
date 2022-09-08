@@ -1,0 +1,12 @@
+.read-the-docs {
+	color: #888;
+}
+
+.address {
+	margin-bottom: 10px;
+}
+
+.App {
+	display: flex;
+	flex-direction: column;
+}
