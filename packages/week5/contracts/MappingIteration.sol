@@ -17,28 +17,37 @@ contract MappingIteraction {
 		owner = msg.sender;
 	}
 
-	// 可以指定插入陣列的位置
+	// 可以指定插入陣列的位置，使用 replace
 	function _insertKey(uint256 _i, address _key) internal {
 		require(keys.length >= _i, 'index out of bound');
 
-		address lastKey = keys[keys.length - 1];
-		keys.push(lastKey);
+		address replaceKey = keys[_i]; // 要插入位置的 key
+		uint256 keyOfIndex = insertedIndex[_key];
 
-		for (uint256 i = keys.length - 1; i > _i; i--) {
-			keys[i] = keys[i - 1];
+		// key 已存在，跟要插入的位置交換
+		if (keyOfIndex > 0) {
+			keys[keyOfIndex - 1] = replaceKey;
+			insertedIndex[replaceKey] = keyOfIndex;
+		} else {
+			// key 不存在，插入的位置移至最後一位
+			keys.push(replaceKey);
+			insertedIndex[replaceKey] = keys.length;
 		}
 
 		keys[_i] = _key;
+		insertedIndex[_key] = _i + 1;
 	}
 
-	// 可以刪除指定的 key
+	// 可以刪除指定 index 的 key，使用 replace
 	function _removeKey(uint256 _i) internal {
 		require(keys.length > _i, 'index out of bound');
 
-		for (uint256 i = _i; i < keys.length - 1; i++) {
-			keys[i] = keys[i + 1];
-		}
+		address removeKey = keys[_i];
+
+		keys[_i] = keys[keys.length - 1];
+
 		keys.pop();
+		delete insertedIndex[removeKey]; // reset to zero
 	}
 
 	function set(address _key, uint256 _val) external {
@@ -54,7 +63,6 @@ contract MappingIteraction {
 		uint256 keyIndex = insertedIndex[_key];
 		if (keyIndex > 0) {
 			_removeKey(keyIndex - 1);
-			delete insertedIndex[_key];
 			delete balances[_key];
 		}
 	}
@@ -66,10 +74,7 @@ contract MappingIteraction {
 	) external {
 		balances[_key] = _val;
 
-		if (insertedIndex[_key] == 0) {
-			_insertKey(_i, _key);
-			insertedIndex[_key] = _i + 1;
-		}
+		_insertKey(_i, _key);
 	}
 
 	function getSize() external view returns (uint256) {
@@ -87,5 +92,15 @@ contract MappingIteraction {
 	function get(uint256 _i) external view returns (uint256) {
 		require(keys.length > _i, 'index out of bound');
 		return balances[keys[_i]];
+	}
+
+	function getKeyIndex(address _key) external view returns (uint256) {
+		require(insertedIndex[_key] > 0, 'index out of bound');
+		return insertedIndex[_key] - 1;
+	}
+
+	function getKey(uint256 _i) external view returns (address) {
+		require(keys.length > _i, 'index out of bound');
+		return keys[_i];
 	}
 }

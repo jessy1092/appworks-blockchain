@@ -76,6 +76,7 @@ describe('MappingIteraction', function () {
 			await mapIter.set(owner.address, 100n);
 			await mapIter.set(otherAccounts[0].address, 200n);
 			await mapIter.set(otherAccounts[1].address, 300n);
+			await mapIter.set(otherAccounts[2].address, 400n);
 
 			const DeleteAddress = otherAccounts[0].address;
 
@@ -85,9 +86,15 @@ describe('MappingIteraction', function () {
 			const balance = await mapIter.balances(DeleteAddress);
 			const size = await mapIter.getSize();
 
+			const replaceBalance = await mapIter.get(1);
+			const replaceAddress = await mapIter.getKey(1);
+
 			expect(index).to.equal(0);
 			expect(balance).to.equal(0);
-			expect(size).to.equal(2);
+			expect(size).to.equal(3);
+
+			expect(replaceBalance).to.equal(400n);
+			expect(replaceAddress).to.equal(otherAccounts[2].address);
 		});
 	});
 
@@ -107,9 +114,15 @@ describe('MappingIteraction', function () {
 			const balance = await mapIter.balances(insertAddress);
 			const resultAddress = await mapIter.keys(index.sub(1));
 
+			const lastBalance = await mapIter.last();
+			const lastAddress = await mapIter.getKey(3);
+
 			expect(index).to.equal(2); // 實際上是用 index + 1 來紀錄
 			expect(balance).to.equal(400n);
 			expect(resultAddress).to.equal(insertAddress);
+
+			expect(lastBalance).to.equal(200n);
+			expect(lastAddress).to.equal(otherAccounts[0].address);
 		});
 	});
 });
