@@ -275,6 +275,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@app-block/week7@workspace:packages/week7"
   dependencies:
+    "@chainlink/contracts": ^0.4.1
     "@ethersproject/abi": ^5.7.0
     "@ethersproject/providers": ^5.7.0
     "@nomicfoundation/hardhat-chai-matchers": ^1.0.3
@@ -1803,6 +1804,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@chainlink/contracts@npm:^0.4.1":
+  version: 0.4.2
+  resolution: "@chainlink/contracts@npm:0.4.2"
+  dependencies:
+    "@eth-optimism/contracts": ^0.5.21
+  checksum: 0da325eff706997d3f65def63d7949b533c0b304ebb91722bf403201a94194adca7d894646fa2abd695dbe4c8a8e3c6078505fded9cf45b1b301961999e5382c
+  languageName: node
+  linkType: hard
+
 "@cspotcode/source-map-support@npm:^0.8.0":
   version: 0.8.1
   resolution: "@cspotcode/source-map-support@npm:0.8.1"
@@ -2003,6 +2013,43 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@eth-optimism/contracts@npm:^0.5.21":
+  version: 0.5.36
+  resolution: "@eth-optimism/contracts@npm:0.5.36"
+  dependencies:
+    "@eth-optimism/core-utils": 0.10.1
+    "@ethersproject/abstract-provider": ^5.7.0
+    "@ethersproject/abstract-signer": ^5.7.0
+  peerDependencies:
+    ethers: ^5
+  checksum: b97469afe39b3c4390f35f0a4f9e751c4f5a779e99d4d3ed20ac98cf7f43401a1eebd98fa6e762bd79ff7f33b266fb4310c3f1adf6dcdcbf2600827367c64568
+  languageName: node
+  linkType: hard
+
+"@eth-optimism/core-utils@npm:0.10.1":
+  version: 0.10.1
+  resolution: "@eth-optimism/core-utils@npm:0.10.1"
+  dependencies:
+    "@ethersproject/abi": ^5.7.0
+    "@ethersproject/abstract-provider": ^5.7.0
+    "@ethersproject/address": ^5.7.0
+    "@ethersproject/bignumber": ^5.7.0
+    "@ethersproject/bytes": ^5.7.0
+    "@ethersproject/constants": ^5.7.0
+    "@ethersproject/contracts": ^5.7.0
+    "@ethersproject/hash": ^5.7.0
+    "@ethersproject/keccak256": ^5.7.0
+    "@ethersproject/properties": ^5.7.0
+    "@ethersproject/providers": ^5.7.0
+    "@ethersproject/rlp": ^5.7.0
+    "@ethersproject/transactions": ^5.7.0
+    "@ethersproject/web": ^5.7.0
+    bufio: ^1.0.7
+    chai: ^4.3.4
+  checksum: ab8dfe644eb70b877d63c4543ec18c4a3f50ed71304b052562ce7827a1a9aefb5d735d5a2de275866fed3e48726c7ae8dd8335f7da91e2e7bc2b7ddd397de678
+  languageName: node
+  linkType: hard
+
 "@ethereumjs/block@npm:^3.5.0, @ethereumjs/block@npm:^3.6.2, @ethereumjs/block@npm:^3.6.3":
   version: 3.6.3
   resolution: "@ethereumjs/block@npm:3.6.3"
@@ -2190,7 +2237,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@ethersproject/contracts@npm:5.7.0":
+"@ethersproject/contracts@npm:5.7.0, @ethersproject/contracts@npm:^5.7.0":
   version: 5.7.0
   resolution: "@ethersproject/contracts@npm:5.7.0"
   dependencies:
@@ -6071,6 +6118,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"bufio@npm:^1.0.7":
+  version: 1.0.7
+  resolution: "bufio@npm:1.0.7"
+  checksum: 4871b8060a8d3bc04de8722f5cc5575b77f4cb18af389eab62d51bf42b08f43fe75159126ef11f15fe4045dc8c20e0e344406ca8388cb1371e558b986e971a57
+  languageName: node
+  linkType: hard
+
 "builtin-modules@npm:^3.1.0":
   version: 3.3.0
   resolution: "builtin-modules@npm:3.3.0"
@@ -6281,7 +6335,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"chai@npm:^4.3.6":
+"chai@npm:^4.3.4, chai@npm:^4.3.6":
   version: 4.3.6
   resolution: "chai@npm:4.3.6"
   dependencies:

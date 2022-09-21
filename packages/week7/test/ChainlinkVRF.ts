@@ -10,17 +10,17 @@ describe('FuncType', function () {
 		// Contracts are deployed using the first signer/account by default
 		const [owner, otherAccount] = await ethers.getSigners();
 
-		const Basic = await ethers.getContractFactory('FuncType');
-		const basic = await Basic.deploy();
+		const Basic = await ethers.getContractFactory('VRFv2Consumer');
+		const basic = await Basic.deploy(123);
 
 		return { basic, owner, otherAccount };
 	}
 
 	describe('Deployment', function () {
-		it('Should set the right owner', async function () {
+		it('Should set the right s_subscriptionId', async function () {
 			const { basic, owner } = await loadFixture(deployOneYearLockFixture);
 
-			expect(await basic.owner()).to.equal(owner.address);
+			expect(await basic.s_subscriptionId()).to.equal(123);
 		});
 
 		it('Should receive and store the funds to lock', async function () {

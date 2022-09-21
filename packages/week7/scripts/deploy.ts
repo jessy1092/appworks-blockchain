@@ -1,10 +1,12 @@
 import { ethers } from 'hardhat';
+import { BigNumber } from 'ethers';
+import * as dotenv from 'dotenv';
+
+dotenv.config({ path: './.env' });
 
 async function main() {
-	const lockedAmount = ethers.utils.parseEther('0.01');
-
-	const Contract = await ethers.getContractFactory('CallFunc');
-	const contract = await Contract.deploy({ value: lockedAmount });
+	const Contract = await ethers.getContractFactory('VRFv2Consumer');
+	const contract = await Contract.deploy(BigNumber.from(process.env.CHAINLINK_SUBSCRIPTION_ID));
 
 	await contract.deployed();
 
