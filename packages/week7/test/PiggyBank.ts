@@ -2,7 +2,7 @@ import { loadFixture } from '@nomicfoundation/hardhat-network-helpers';
 import { expect } from 'chai';
 import { ethers } from 'hardhat';
 
-describe('EtherWallet', function () {
+describe('PiggyBank', function () {
 	const DefaultValue = 1_000_000_000;
 	// We define a fixture to reuse the same setup in every test.
 	// We use loadFixture to run this setup once, snapshot that state,
@@ -11,7 +11,7 @@ describe('EtherWallet', function () {
 		// Contracts are deployed using the first signer/account by default
 		const [owner] = await ethers.getSigners();
 
-		const Basic = await ethers.getContractFactory('EtherWallet');
+		const Basic = await ethers.getContractFactory('PiggyBank');
 		const basic = await Basic.deploy({ value: DefaultValue });
 
 		return { basic, owner, DefaultValue };
@@ -43,9 +43,9 @@ describe('EtherWallet', function () {
 		});
 
 		it('Could withdraw ether', async function () {
-			const { basic, DefaultValue } = await loadFixture(deployOneYearLockFixture);
+			const { basic } = await loadFixture(deployOneYearLockFixture);
 
-			await basic.withdraw(DefaultValue);
+			await basic.withdraw();
 
 			expect(await ethers.provider.getBalance(basic.address)).to.equal(0);
 		});
