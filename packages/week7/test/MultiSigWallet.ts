@@ -7,6 +7,8 @@ describe('MultiSigWallet', function () {
 	// We use loadFixture to run this setup once, snapshot that state,
 	// and reset Hardhat Network to that snapshot in every test.
 	async function deployOneYearLockFixture() {
+		const DefalutValue = 1_000_000_000;
+
 		// Contracts are deployed using the first signer/account by default
 		const [owner, ...otherAccount] = await ethers.getSigners();
 
@@ -14,9 +16,10 @@ describe('MultiSigWallet', function () {
 		const basic = await Basic.deploy(
 			[owner.address, otherAccount[0].address, otherAccount[1].address],
 			2,
+			{ value: DefalutValue },
 		);
 
-		return { basic, owner, otherAccount };
+		return { basic, owner, otherAccount, DefalutValue };
 	}
 
 	describe('Deployment', function () {
@@ -35,9 +38,9 @@ describe('MultiSigWallet', function () {
 		});
 
 		it('Should receive and store the funds to lock', async function () {
-			const { basic } = await loadFixture(deployOneYearLockFixture);
+			const { basic, DefalutValue } = await loadFixture(deployOneYearLockFixture);
 
-			expect(await ethers.provider.getBalance(basic.address)).to.equal(0);
+			expect(await ethers.provider.getBalance(basic.address)).to.equal(DefalutValue);
 		});
 	});
 
@@ -45,7 +48,7 @@ describe('MultiSigWallet', function () {
 		it('Should approve with owner', async function () {
 			const { basic, owner, otherAccount } = await loadFixture(deployOneYearLockFixture);
 
-			await basic.submit(otherAccount[3].address, 1, '0x00');
+			await basic.submit(otherAccount[3].address, 1, '0x00', false);
 			await basic.approve(0);
 
 			const approve = await basic.approved(0, owner.address);
@@ -54,15 +57,31 @@ describe('MultiSigWallet', function () {
 		});
 
 		it('Should approved by other owner', async function () {
-			const { basic, owner, otherAccount } = await loadFixture(deployOneYearLockFixture);
+			const { basic, otherAccount } = await loadFixture(deployOneYearLockFixture);
 
-			await basic.submit(otherAccount[3].address, 1, '0x00');
+			await basic.submit(otherAccount[3].address, 1, '0x00', false);
 
 			await basic.connect(otherAccount[0]).approve(0);
 
 			const approve = await basic.approved(0, otherAccount[0].address);
 
 			expect(approve).to.equal(true);
+		});
+	});
+
+	describe('Execute', function () {
+		it('Should approve with owner', async function () {
+			const { basic, owner, otherAccount } = await loadFixture(deployOneYearLockFixture);
+
+			await basic.submit(otherAccount[3].address, 1, '0x00', true);
+			await basic.approve(0);
+			await basic.connect(otherAccount[0]).approve(0);
+
+			await basic.execute(0);
+
+			const tx = await basic.transactions(0);
+
+			expect(tx.executed).to.equal(true);
 		});
 	});
 });

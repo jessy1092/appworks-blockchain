@@ -13,6 +13,7 @@ contract MultiSigWallet {
 		uint256 value;
 		bytes data;
 		bool executed;
+		bool isPureValue;
 	}
 
 	address[] public owners;
@@ -42,7 +43,7 @@ contract MultiSigWallet {
 		_;
 	}
 
-	constructor(address[] memory _owners, uint256 _required) {
+	constructor(address[] memory _owners, uint256 _required) payable {
 		require(_owners.length > 0, 'owners required');
 		require(_required > 0 && _required <= _owners.length, 'invalid required number of owners');
 
@@ -56,6 +57,10 @@ contract MultiSigWallet {
 		}
 
 		required = _required;
+
+		if (msg.value > 0) {
+			emit Deposit(msg.sender, msg.value);
+		}
 	}
 
 	receive() external payable {
@@ -65,9 +70,18 @@ contract MultiSigWallet {
 	function submit(
 		address _to,
 		uint256 _value,
-		bytes calldata _data
+		bytes calldata _data,
+		bool _isPureValue
 	) external onlyOwner {
-		transactions.push(Transaction({ to: _to, value: _value, data: _data, executed: false }));
+		transactions.push(
+			Transaction({
+				to: _to,
+				value: _value,
+				data: _data,
+				executed: false,
+				isPureValue: _isPureValue
+			})
+		);
 		emit Submit(transactions.length - 1);
 	}
 
@@ -99,7 +113,13 @@ contract MultiSigWallet {
 
 		transaction.executed = true;
 
-		(bool success, ) = transaction.to.call{ value: transaction.value }(transaction.data);
+		bool success = false;
+
+		if (transaction.isPureValue) {
+			(success, ) = transaction.to.call{ value: transaction.value }('');
+		} else {
+			(success, ) = transaction.to.call{ value: transaction.value }(transaction.data);
+		}
 
 		require(success, 'tx failed');
 
