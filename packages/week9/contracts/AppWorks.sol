@@ -2,22 +2,24 @@
 
 pragma solidity ^0.8.16;
 
-import '@openzeppelin/contracts/token/ERC721/ERC721.sol';
-import '@openzeppelin/contracts/access/Ownable.sol';
-import '@openzeppelin/contracts/utils/Counters.sol';
+import '@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol';
+import '@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol';
+import '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
+import '@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol';
+import '@openzeppelin/contracts-upgradeable/utils/CountersUpgradeable.sol';
 
-contract AppWorks is ERC721, Ownable {
-	using Strings for uint256;
+contract AppWorks is Initializable, ERC721Upgradeable, OwnableUpgradeable, UUPSUpgradeable {
+	using StringsUpgradeable for uint256;
 
-	using Counters for Counters.Counter;
-	Counters.Counter private _nextTokenId;
+	using CountersUpgradeable for CountersUpgradeable.Counter;
+	CountersUpgradeable.Counter private _nextTokenId;
 
-	uint256 public price = 0.01 ether;
-	uint256 public constant maxSupply = 100;
+	uint256 public price;
+	uint256 public maxSupply;
 
-	bool public mintActive = false;
-	bool public earlyMintActive = false;
-	bool public revealed = false;
+	bool public mintActive;
+	bool public earlyMintActive;
+	bool public revealed;
 
 	string public baseURI;
 	bytes32 public merkleRoot;
@@ -25,7 +27,31 @@ contract AppWorks is ERC721, Ownable {
 	mapping(uint256 => string) private _tokenURIs;
 	mapping(address => uint256) public addressMintedBalance;
 
-	constructor() ERC721('AppWorks', 'AW') Ownable() {}
+	// Set mint per user limit to 10 and owner limit to 20 - Week 8
+	uint256 public mintNumberPerUser;
+	uint256 public mintNumberPerOwner;
+
+	// constructor() ERC721('AppWorks', 'AW') Ownable() {}
+
+	function initialize() public initializer {
+		__ERC721_init('AppWorks', 'AW');
+		__Ownable_init();
+		__UUPSUpgradeable_init();
+
+		__init();
+	}
+
+	function __init() internal initializer {
+		price = 0.01 ether;
+		mintActive = false;
+		earlyMintActive = false;
+		revealed = false;
+		maxSupply = 100;
+		mintNumberPerUser = 10;
+		mintNumberPerOwner = 20;
+	}
+
+	function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
 
 	// Public mint function - week 8
 	function mint(uint256 _mintAmount) public payable {
@@ -77,10 +103,6 @@ contract AppWorks is ERC721, Ownable {
 	function toggleMint() external onlyOwner {
 		mintActive = !mintActive;
 	}
-
-	// Set mint per user limit to 10 and owner limit to 20 - Week 8
-	uint256 public constant mintNumberPerUser = 10;
-	uint256 public constant mintNumberPerOwner = 20;
 
 	// Implement toggleReveal() Function to toggle the blind box is revealed - week 9
 

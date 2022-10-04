@@ -1,6 +1,6 @@
 import { loadFixture } from '@nomicfoundation/hardhat-network-helpers';
 import { expect } from 'chai';
-import { ethers } from 'hardhat';
+import { ethers, upgrades } from 'hardhat';
 import BigNumber from 'bignumber.js';
 
 import { AppWorks } from '../test-types/contracts/AppWorks';
@@ -15,7 +15,10 @@ describe('AppWorks', function () {
 		const [owner, ...otherAccount] = await ethers.getSigners();
 
 		const Basic = await ethers.getContractFactory('AppWorks');
-		const basic = (await Basic.deploy()) as AppWorks;
+		const basic = (await upgrades.deployProxy(Basic, {
+			initializer: 'initialize',
+			kind: 'uups',
+		})) as AppWorks;
 
 		return { DEFAULT_MINT_PRICE, basic, owner, otherAccount };
 	}
