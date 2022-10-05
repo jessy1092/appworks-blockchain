@@ -5,7 +5,7 @@
 	padding: 1em;
 	border-radius: 8px;
 	border: 1px solid transparent;
-	border-color: #646cff;
+	border-color: var(--primary);
 }
 
 .balance-card > .action {

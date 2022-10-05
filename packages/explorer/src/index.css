@@ -13,11 +13,13 @@
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
 	-webkit-text-size-adjust: 100%;
+
+	--primary: #646cff;
 }
 
 a {
 	font-weight: 500;
-	color: #646cff;
+	color: var(--primary);
 	text-decoration: inherit;
 }
 a:hover {
@@ -69,7 +71,7 @@ input {
 }
 
 input:hover {
-	border-color: #646cff;
+	border-color: var(--primary);
 }
 
 @media (prefers-color-scheme: light) {
