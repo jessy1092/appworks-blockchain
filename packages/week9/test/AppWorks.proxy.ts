@@ -4,6 +4,7 @@ import { ethers, upgrades } from 'hardhat';
 import keccak256 from 'keccak256';
 
 import { createMerkleTree } from '../node-whitelist';
+import { AppWorks } from '../test-types';
 
 import { AppWorksV2 } from '../test-types/contracts/AppWorksV2';
 
@@ -18,11 +19,15 @@ describe('AppWorks', function () {
 
 		const [owner, ...otherAccount] = allAccounts;
 
-		const Basic = await ethers.getContractFactory('AppWorksV2');
-		const basic = (await upgrades.deployProxy(Basic, {
+		const AppWorks = await ethers.getContractFactory('AppWorks');
+		const AppWorksV2 = await ethers.getContractFactory('AppWorksV2');
+
+		const appWorks = (await upgrades.deployProxy(AppWorks, {
 			initializer: 'initialize',
 			kind: 'uups',
-		})) as AppWorksV2;
+		})) as AppWorks;
+
+		const basic = (await upgrades.upgradeProxy(appWorks.address, AppWorksV2)) as AppWorksV2;
 
 		return { DEFAULT_MINT_PRICE, basic, owner, otherAccount, allAccounts };
 	}
