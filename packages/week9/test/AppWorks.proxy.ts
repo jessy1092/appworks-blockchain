@@ -2,11 +2,10 @@ import { loadFixture } from '@nomicfoundation/hardhat-network-helpers';
 import { expect } from 'chai';
 import { ethers, upgrades } from 'hardhat';
 import keccak256 from 'keccak256';
+import BigNumber from 'bignumber.js';
 
 import { createMerkleTree } from '../node-whitelist';
-import { AppWorks } from '../test-types';
-
-import { AppWorksV2 } from '../test-types/contracts/AppWorksV2';
+import { AppWorks, AppWorksV2, AppWorksV3 } from '../test-types';
 
 describe('AppWorks', function () {
 	// We define a fixture to reuse the same setup in every test.
@@ -21,13 +20,15 @@ describe('AppWorks', function () {
 
 		const AppWorks = await ethers.getContractFactory('AppWorks');
 		const AppWorksV2 = await ethers.getContractFactory('AppWorksV2');
+		const AppWorksV3 = await ethers.getContractFactory('AppWorksV3');
 
 		const appWorks = (await upgrades.deployProxy(AppWorks, {
 			initializer: 'initialize',
 			kind: 'uups',
 		})) as AppWorks;
 
-		const basic = (await upgrades.upgradeProxy(appWorks.address, AppWorksV2)) as AppWorksV2;
+		const appWorksV3 = (await upgrades.upgradeProxy(appWorks.address, AppWorksV2)) as AppWorksV2;
+		const basic = (await upgrades.upgradeProxy(appWorks.address, AppWorksV3)) as AppWorksV3;
 
 		return { DEFAULT_MINT_PRICE, basic, owner, otherAccount, allAccounts };
 	}
@@ -91,14 +92,14 @@ describe('AppWorks', function () {
 			).to.be.revertedWith('Excess maximun number of mint');
 		});
 
-		it('Should match addressMintedBalance after mint', async function () {
+		it('Should match balanceOf after mint', async function () {
 			const { basic, owner, DEFAULT_MINT_PRICE } = await loadFixture(deployAppWorksFixture);
 
 			await basic.toggleMint();
 
 			await basic.mint(2, { value: DEFAULT_MINT_PRICE.mul(2) });
 
-			expect(await basic.addressMintedBalance(owner.address)).to.equal('2');
+			expect(await basic.balanceOf(owner.address)).to.equal('2');
 		});
 
 		it('Should mint many time if not excess maximun number of mint', async function () {
@@ -109,7 +110,7 @@ describe('AppWorks', function () {
 			await basic.mint(1, { value: DEFAULT_MINT_PRICE });
 			await basic.mint(2, { value: DEFAULT_MINT_PRICE.mul(2) });
 
-			expect(await basic.addressMintedBalance(owner.address)).to.equal('3');
+			expect(await basic.balanceOf(owner.address)).to.equal('3');
 		});
 
 		it('Should revert with excess maximun supply', async function () {
@@ -296,7 +297,7 @@ describe('AppWorks', function () {
 			).to.be.revertedWith('Excess maximun number of mint');
 		});
 
-		it('Should match addressMintedBalance after mint', async function () {
+		it('Should match balanceOf after mint', async function () {
 			const { basic, owner, DEFAULT_MINT_PRICE, merkleTree, merkleRoot } = await loadFixture(
 				createWhitelistFixture,
 			);
@@ -309,7 +310,7 @@ describe('AppWorks', function () {
 
 			await basic.earlyMint(proof, 2, { value: DEFAULT_MINT_PRICE.mul(2) });
 
-			expect(await basic.addressMintedBalance(owner.address)).to.equal('2');
+			expect(await basic.balanceOf(owner.address)).to.equal('2');
 		});
 
 		it('Should mint many time if not excess maximun number of mint', async function () {
@@ -326,7 +327,7 @@ describe('AppWorks', function () {
 			await basic.earlyMint(proof, 1, { value: DEFAULT_MINT_PRICE });
 			await basic.earlyMint(proof, 2, { value: DEFAULT_MINT_PRICE.mul(2) });
 
-			expect(await basic.addressMintedBalance(owner.address)).to.equal('3');
+			expect(await basic.balanceOf(owner.address)).to.equal('3');
 		});
 
 		it('Should revert with excess maximun supply', async function () {
@@ -471,6 +472,74 @@ describe('AppWorks', function () {
 			await basic.toggleReveal();
 
 			expect(await basic.tokenURI(1)).to.equal('https://example.com/1');
+		});
+	});
+
+	describe('addressMintedBalance', function () {
+		it('Should setup token id after mint', async function () {
+			const { basic, owner, DEFAULT_MINT_PRICE } = await loadFixture(deployAppWorksFixture);
+
+			await basic.toggleMint();
+
+			await basic.mint(5, { value: DEFAULT_MINT_PRICE.mul(5) });
+
+			const addressMintedBalance = await basic.addressMintedBalance(owner.address);
+
+			const resultTokenId = new BigNumber(addressMintedBalance.toString())
+				.toString(2)
+				.split('')
+				.reduce((p: number[], c, i) => {
+					if (c === '1') {
+						p.push(i + 1);
+					}
+					return p;
+				}, []);
+
+			expect(resultTokenId).to.eql([1, 2, 3, 4, 5]);
+		});
+
+		it('Should clear token id after transfer', async function () {
+			const { basic, owner, otherAccount, DEFAULT_MINT_PRICE } = await loadFixture(
+				deployAppWorksFixture,
+			);
+
+			await basic.toggleMint();
+
+			await basic.mint(5, { value: DEFAULT_MINT_PRICE.mul(5) });
+
+			await basic.approve(otherAccount[0].address, 2);
+
+			await basic.transferFrom(owner.address, otherAccount[0].address, 2);
+
+			const fromAddressMintedBalance = await basic.addressMintedBalance(owner.address);
+			const toAddressMintedBalance = await basic
+				.connect(otherAccount[0])
+				.addressMintedBalance(otherAccount[0].address);
+
+			const fromTokenId = new BigNumber(fromAddressMintedBalance.toString())
+				.toString(2)
+				.split('')
+				.reverse()
+				.reduce((p: number[], c, i) => {
+					if (c === '1') {
+						p.push(i + 1);
+					}
+					return p;
+				}, []);
+
+			const toTokenId = new BigNumber(toAddressMintedBalance.toString())
+				.toString(2)
+				.split('')
+				.reverse()
+				.reduce((p: number[], c, i) => {
+					if (c === '1') {
+						p.push(i + 1);
+					}
+					return p;
+				}, []);
+
+			expect(fromTokenId).to.eql([1, 3, 4, 5]);
+			expect(toTokenId).to.eql([2]);
 		});
 	});
 });
