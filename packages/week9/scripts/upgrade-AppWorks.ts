@@ -3,7 +3,7 @@ import { ethers, upgrades } from 'hardhat';
 import depolyData from '../.openzeppelin/goerli.json';
 
 async function main() {
-	const AppWorks = await ethers.getContractFactory('AppWorksV2');
+	const AppWorks = await ethers.getContractFactory('AppWorksV3');
 	const appWorks = await upgrades.upgradeProxy(depolyData.proxies[0].address, AppWorks, {
 		kind: 'uups',
 	});
