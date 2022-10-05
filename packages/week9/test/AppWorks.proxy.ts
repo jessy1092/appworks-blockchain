@@ -430,4 +430,42 @@ describe('AppWorks', function () {
 			expect(await ethers.provider.getBalance(basic.address)).to.equal(DEFAULT_MINT_PRICE.mul(2));
 		});
 	});
+
+	describe('tokenURI', function () {
+		it('Should empty with not setBaseURI', async function () {
+			const { basic, DEFAULT_MINT_PRICE } = await loadFixture(deployAppWorksFixture);
+
+			await basic.toggleMint();
+
+			await basic.mint(2, { value: DEFAULT_MINT_PRICE.mul(2) });
+
+			expect(await basic.tokenURI(1)).to.equal('');
+		});
+
+		it('Should get blind url before reveal', async function () {
+			const { basic, DEFAULT_MINT_PRICE } = await loadFixture(deployAppWorksFixture);
+
+			await basic.toggleMint();
+
+			await basic.mint(2, { value: DEFAULT_MINT_PRICE.mul(2) });
+
+			await basic.setBaseURI('https://example.com/');
+
+			expect(await basic.tokenURI(1)).to.equal('https://example.com/blind');
+		});
+
+		it('Should get token url after reveal', async function () {
+			const { basic, DEFAULT_MINT_PRICE } = await loadFixture(deployAppWorksFixture);
+
+			await basic.toggleMint();
+
+			await basic.mint(2, { value: DEFAULT_MINT_PRICE.mul(2) });
+
+			await basic.setBaseURI('https://example.com/');
+
+			await basic.toggleReveal();
+
+			expect(await basic.tokenURI(1)).to.equal('https://example.com/1');
+		});
+	});
 });
