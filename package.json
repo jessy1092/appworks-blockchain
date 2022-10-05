@@ -1,7 +1,11 @@
 {
-  "name": "app-block",
-  "workspaces": [
-    "packages/*"
-  ],
-  "packageManager": "yarn@3.2.3"
+	"name": "app-block",
+	"workspaces": [
+		"packages/*"
+	],
+	"packageManager": "yarn@3.2.3",
+	"scripts": {
+		"compile:explorer": "yarn workspace @app-block/erc4626 compile && yarn workspace @app-block/week9 compile",
+		"build:explorer": "yarn compile:explorer && yarn workspace @app-block/explorer build"
+	}
 }

@@ -7,7 +7,7 @@ export const sleep = (time: number): Promise<undefined> =>
 
 const routes: CustomRoute = {
 	path: '/test-erc4626',
-	components: () => [import(/* webpackChunkName: 'members' */ './component')],
+	components: () => [import(/* webpackChunkName: 'test-erc4626' */ './component')],
 	render: ([Vault]) => <Vault />,
 	onEnter: async ({ store }) => {
 		console.log('on Enter test-erc4626');

@@ -7,7 +7,7 @@ export const sleep = (time: number): Promise<undefined> =>
 
 const routes: CustomRoute = {
 	path: '/appworks',
-	components: () => [import(/* webpackChunkName: 'members' */ './component')],
+	components: () => [import(/* webpackChunkName: 'appworks' */ './component')],
 	render: ([Vault]) => <Vault />,
 	onEnter: async ({ store }) => {
 		console.log('on Enter appworks');
