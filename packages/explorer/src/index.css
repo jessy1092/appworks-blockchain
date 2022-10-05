@@ -19,6 +19,11 @@
 	--primary: #646cff;
 }
 
+* {
+	outline: none;
+	box-sizing: border-box;
+}
+
 a {
 	font-weight: 500;
 	color: var(--primary);

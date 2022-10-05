@@ -72,6 +72,7 @@ __metadata:
   resolution: "@app-block/explorer@workspace:packages/explorer"
   dependencies:
     "@app-block/erc4626": ^1.0.0
+    "@app-block/week9": ^1.0.0
     "@testing-library/jest-dom": ^5.16.5
     "@testing-library/react": ^13.3.0
     "@testing-library/user-event": ^13.5.0
@@ -337,7 +338,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@app-block/week9@workspace:packages/week9":
+"@app-block/week9@^1.0.0, @app-block/week9@workspace:packages/week9":
   version: 0.0.0-use.local
   resolution: "@app-block/week9@workspace:packages/week9"
   dependencies:

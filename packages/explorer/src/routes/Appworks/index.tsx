@@ -10,8 +10,8 @@ const routes: CustomRoute = {
 	components: () => [import(/* webpackChunkName: 'members' */ './component')],
 	render: ([Vault]) => <Vault />,
 	onEnter: async ({ store }) => {
-		console.log('on Enter test-erc4626');
-		console.log('on Enter test-erc4626 / end');
+		console.log('on Enter appworks');
+		console.log('on Enter appworks / end');
 	},
 };
 export default routes;
