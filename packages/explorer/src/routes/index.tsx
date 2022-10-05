@@ -3,6 +3,7 @@ import React from 'react';
 import { CustomRoute } from './hook';
 
 import TestERC4626Route from './Test-ERC4626';
+import AppworksRoute from './Appworks';
 
 const childrenHomeRoute: CustomRoute = {
 	path: '',
@@ -27,7 +28,7 @@ const routes: CustomRoute = {
 
 		return children;
 	},
-	children: [childrenHomeRoute, TestERC4626Route],
+	children: [childrenHomeRoute, TestERC4626Route, AppworksRoute],
 };
 
 export default routes;

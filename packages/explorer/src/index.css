@@ -1,5 +1,7 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap');
+
 :root {
-	font-family: Inter, Avenir, Helvetica, Arial, sans-serif;
+	font-family: Montserrat, Inter, Avenir, Helvetica, Arial, sans-serif;
 	font-size: 16px;
 	line-height: 24px;
 	font-weight: 400;
@@ -33,6 +35,10 @@ body {
 	justify-content: center;
 	min-width: 320px;
 	min-height: 100vh;
+}
+
+#root {
+	width: 100%;
 }
 
 h1 {
