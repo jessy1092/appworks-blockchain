@@ -5,6 +5,7 @@ import { useConnectWeb3, Wallet } from 'models/wallet';
 
 import styles from './index.module.css';
 import ButtonConnect from 'components/ButtonConnect';
+import MintBox from 'components/MintBox';
 
 const Home: React.FC = () => {
 	const appWorksState = useAppWorks();
@@ -24,6 +25,7 @@ const Home: React.FC = () => {
 					<div className={styles.time}>Price: {appWorksState.price.toString()} GoerliETH</div>
 
 					<ButtonConnect address={address} connect={connect}></ButtonConnect>
+					{address !== '' && <MintBox appWorksState={appWorksState} address={address}></MintBox>}
 				</div>
 			</div>
 		</Wallet.Provider>

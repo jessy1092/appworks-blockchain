@@ -1,0 +1,27 @@
+.mintBox {
+	display: flex;
+	flex-direction: column;
+	margin-top: 10px;
+}
+
+.mintBox > .action {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+}
+
+.mintBox > .action > button {
+	margin-left: 4px;
+}
+
+.mintBox > .action > input {
+	margin-left: 4px;
+}
+
+.mintBox > .action > .mint {
+	margin-left: 20px;
+}
+
+.mintBox > div {
+	margin-bottom: 10px;
+}

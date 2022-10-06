@@ -1,11 +1,14 @@
 import Web3 from 'web3';
 import { AbiItem } from 'web3-utils';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
+import BigNumber from 'bignumber.js';
 
-import { AppWorksV3 } from '@app-block/week9/web3-types/contracts';
+import { AppWorksV3 as AppWorks } from '@app-block/week9/web3-types/contracts';
 
 import ContractData from '@app-block/week9/.openzeppelin/goerli.json';
 import AppWorksAbi from '@app-block/week9/artifacts/contracts/AppWorksV3.sol/AppWorksV3.json';
+
+import { useWallet } from './wallet';
 
 interface normalEvent {
 	returnValues: {
@@ -14,7 +17,7 @@ interface normalEvent {
 	};
 }
 
-interface AppWorksState {
+export interface AppWorksState {
 	baseURI: string;
 	earlyMintActive: boolean;
 	maxSupply: number;
@@ -40,7 +43,7 @@ const subscribeAppWorks = (onUpdate = (t: AppWorksState) => {}) => {
 	const myContract = new web3Socket.eth.Contract(
 		AppWorksAbi.abi as AbiItem[],
 		ContractData.proxies[0].address,
-	) as any as AppWorksV3;
+	) as any as AppWorks;
 
 	const update = async () => {
 		console.log('Update AppWorks State');
@@ -136,4 +139,88 @@ export const useAppWorks = () => {
 	}, []);
 
 	return appWorksState;
+};
+
+interface MyAppWorksState {
+	balance: number;
+	addressMintedBalance: number[];
+	inWhitelist: boolean;
+}
+
+export const useMyAppWorks = (myAddress: string) => {
+	const { wallet } = useWallet();
+	const [myAppWorksState, setMyAppWorksState] = useState<MyAppWorksState>({
+		balance: 0,
+		addressMintedBalance: [],
+		inWhitelist: false,
+	});
+	const [contract, setContract] = useState<null | AppWorks>(null);
+
+	const getBalance = useCallback(async () => {
+		if (contract !== null) {
+			console.log('Get Balance?');
+			const newBalance = await contract.methods.balanceOf(myAddress).call();
+
+			setMyAppWorksState(s => ({ ...s, balance: parseInt(newBalance, 10) }));
+		}
+	}, [contract, myAddress]);
+
+	const getAddressMintedBalance = useCallback(async () => {
+		if (contract !== null) {
+			console.log('Get Balance?');
+			const newMintedTokenBitMap = await contract.methods.addressMintedBalance(myAddress).call();
+
+			const addressMintedBalance = new BigNumber(newMintedTokenBitMap.toString())
+				.toString(2)
+				.split('')
+				.reverse()
+				.reduce((p: number[], c, i) => {
+					if (c === '1') {
+						p.push(i + 1);
+					}
+					return p;
+				}, []);
+
+			setMyAppWorksState(s => ({ ...s, addressMintedBalance }));
+		}
+	}, [contract, myAddress]);
+
+	const mint = async (number: bigint) => {
+		console.log('mint??????', contract);
+		if (contract !== null) {
+			const recipt = await contract.methods.mint(number.toString()).send();
+
+			console.log('mint finish', recipt);
+
+			await Promise.all([getBalance(), getAddressMintedBalance()]);
+		}
+	};
+
+	useEffect(() => {
+		const getContract = async () => {
+			if (wallet !== null) {
+				const gasPrice = await wallet.eth.getGasPrice();
+
+				const contract = new wallet.eth.Contract(
+					AppWorksAbi.abi as AbiItem[],
+					ContractData.proxies[0].address,
+					{
+						from: myAddress, // default from address
+						gasPrice,
+					},
+				) as any as AppWorks;
+
+				setContract(contract);
+			}
+		};
+
+		getContract();
+	}, [wallet, myAddress]);
+
+	useEffect(() => {
+		getBalance();
+		getAddressMintedBalance();
+	}, [getBalance, getAddressMintedBalance]);
+
+	return { contract, mint, myAppWorksState };
 };
