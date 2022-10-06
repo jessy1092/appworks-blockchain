@@ -15,6 +15,7 @@ const Home: React.FC = () => {
 		<Wallet.Provider value={myWallet}>
 			<div className={styles.appworks}>
 				<div className={styles.bgcontainer}></div>
+				<div className={styles.mask}></div>
 				<div className={styles.container}>
 					<div className={styles.title}>AppWorks Art NFT</div>
 					<div className={styles.subTitle}>Next generation art about school</div>
