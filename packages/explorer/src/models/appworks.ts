@@ -30,7 +30,7 @@ interface AppWorksState {
 	totalSupply: number;
 }
 
-export const subscribeAppWorks = (onUpdate = (t: AppWorksState) => {}) => {
+const subscribeAppWorks = (onUpdate = (t: AppWorksState) => {}) => {
 	const web3Socket = new Web3(
 		new Web3.providers.WebsocketProvider(
 			`wss://eth-goerli.g.alchemy.com/v2/${process.env.REACT_APP_WEBSOCKET_KEY}`,
