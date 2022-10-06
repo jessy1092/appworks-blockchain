@@ -1,4 +1,6 @@
-import { useTWDFContract, useTWDFVaultContract, useWallet } from 'models/wallet';
+import { useWallet } from 'models/wallet';
+import { useTWDFContract, useTWDFVaultContract } from 'models/vault';
+
 import BalanceCard from 'components/BalanceCard';
 import VaultCard from 'components/VaultCard';
 

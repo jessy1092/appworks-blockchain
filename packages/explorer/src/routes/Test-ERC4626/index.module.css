@@ -6,7 +6,12 @@
 	margin-bottom: 10px;
 }
 
-.App {
+.app {
 	display: flex;
 	flex-direction: column;
+	align-items: center;
+}
+
+.app > div {
+	min-width: 400px;
 }
