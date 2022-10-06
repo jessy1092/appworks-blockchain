@@ -13,7 +13,7 @@
 		"blocknode": "hardhat node",
 		"watch": "remixd -s . --remix-ide https://remix.ethereum.org",
 		"clean": "rm -rf .deps && rm -rf artifacts && rm -rf cache && rm -rf web3-types && rm -rf test-types",
-		"selector": "ts-node node-selector.ts"
+		"whitelist": "ts-node node-whitelist.ts"
 	},
 	"devDependencies": {
 		"@ethersproject/abi": "^5.7.0",
