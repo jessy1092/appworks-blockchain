@@ -1,4 +1,4 @@
-import { ChangeEvent, useState } from 'react';
+import { ChangeEvent, useEffect, useState } from 'react';
 
 import { AppWorksState, useMyAppWorks } from 'models/appworks';
 
@@ -11,9 +11,9 @@ interface MintBoxProperty {
 }
 
 const MintBox: React.FC<MintBoxProperty> = ({ className, address, appWorksState }) => {
-	const { mint, myAppWorksState } = useMyAppWorks(address);
+	const { mint, earlyMint, myAppWorksState } = useMyAppWorks(address);
 
-	const [quantity, setQuantity] = useState<number>(0);
+	const [quantity, setQuantity] = useState<number>(1);
 
 	const maxMintQuantity =
 		address.toLowerCase() === appWorksState.owner.toLowerCase()
@@ -22,31 +22,71 @@ const MintBox: React.FC<MintBoxProperty> = ({ className, address, appWorksState 
 
 	const canMintQuantity = maxMintQuantity - myAppWorksState.balance;
 
+	const canMint =
+		(appWorksState.earlyMintActive && myAppWorksState.inWhitelist) || appWorksState.mintActive;
+
+	const onMint = () => {
+		if (appWorksState.mintActive && quantity > 0) {
+			mint(quantity);
+			return;
+		}
+
+		if (appWorksState.earlyMintActive && quantity > 0) {
+			earlyMint(quantity);
+		}
+	};
+
 	const onChangeQuantity = (e: ChangeEvent<HTMLInputElement>) => {
 		try {
 			const newQuantity = parseInt(e.target.value, 10);
-			setQuantity(newQuantity);
+
+			if (newQuantity < canMintQuantity && newQuantity > 0) {
+				setQuantity(newQuantity);
+			}
 		} catch (e) {
 			console.log('Can not parse number');
 		}
 	};
 
+	const increaseQuantity = () => {
+		if (quantity + 1 <= canMintQuantity) {
+			setQuantity(quantity + 1);
+		}
+	};
+
+	const decreaseQuantity = () => {
+		if (quantity - 1 > 0) {
+			setQuantity(quantity - 1);
+		}
+	};
+
+	useEffect(() => {
+		// No quantity
+		if (myAppWorksState.balance !== 0 && canMintQuantity === 0 && quantity !== 0) {
+			setQuantity(0);
+		}
+	}, [canMintQuantity, quantity, myAppWorksState.balance]);
+
 	return (
 		<div className={styles.mintBox}>
 			<div>In Whitelist: {myAppWorksState.inWhitelist}</div>
 			<div>Can mint quantity: {canMintQuantity}</div>
-			<div className={styles.action}>
-				Mint Quantity:
-				<input
-					type="text"
-					placeholder="Mint quantity"
-					value={quantity.toString()}
-					onChange={onChangeQuantity}
-				></input>
-				<button>+</button>
-				<button>-</button>
-				<button className={styles.mint}>Mint</button>
-			</div>
+			{canMint && canMintQuantity > 0 && (
+				<div className={styles.action}>
+					Mint Quantity:
+					<input
+						type="text"
+						placeholder="Mint quantity"
+						value={quantity.toString()}
+						onChange={onChangeQuantity}
+					></input>
+					<button onClick={increaseQuantity}>+</button>
+					<button onClick={decreaseQuantity}>-</button>
+					<button className={styles.mint} onClick={onMint}>
+						Mint
+					</button>
+				</div>
+			)}
 		</div>
 	);
 };

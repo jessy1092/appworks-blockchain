@@ -208,12 +208,23 @@ export const useMyAppWorks = (myAddress: string) => {
 		}
 	}, [contract, myAddress]);
 
-	const mint = async (number: bigint) => {
+	const mint = async (number: number) => {
 		console.log('mint??????', contract);
 		if (contract !== null) {
-			const recipt = await contract.methods.mint(number.toString()).send();
+			const recipt = await contract.methods.mint(number).send();
 
 			console.log('mint finish', recipt);
+
+			await Promise.all([getBalance(), getAddressMintedBalance()]);
+		}
+	};
+
+	const earlyMint = async (number: number) => {
+		console.log('early mint??????', contract);
+		if (contract !== null && myAppWorksState.proof.length > 0) {
+			const recipt = await contract.methods.earlyMint(myAppWorksState.proof, number).send();
+
+			console.log('early, mint finish', recipt);
 
 			await Promise.all([getBalance(), getAddressMintedBalance()]);
 		}
@@ -267,5 +278,5 @@ export const useMyAppWorks = (myAddress: string) => {
 		checkInWhitelist();
 	}, [getBalance, getAddressMintedBalance, checkInWhitelist]);
 
-	return { contract, mint, myAppWorksState };
+	return { contract, mint, myAppWorksState, earlyMint };
 };
