@@ -14,11 +14,12 @@ export const checkConnection = async () => {
 		if (typeof account !== 'undefined' && account[0]) {
 			console.log(account[0]);
 
-			return account[0];
+			return Web3.utils.toChecksumAddress(account[0]);
 		}
 
 		return '';
 	}
+	return '';
 };
 
 export const Wallet = React.createContext<null | Web3>(null);
@@ -47,7 +48,7 @@ export const useConnectWeb3 = () => {
 			//Get the current MetaMask selected/active wallet
 			const walletAddress = account.givenProvider.selectedAddress;
 			console.log(`Wallet: ${walletAddress}`);
-			setAddress(walletAddress);
+			setAddress(Web3.utils.toChecksumAddress(walletAddress));
 		} else {
 			console.log('No wallet');
 		}

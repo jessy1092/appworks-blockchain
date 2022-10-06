@@ -141,10 +141,32 @@ export const useAppWorks = () => {
 	return appWorksState;
 };
 
+const getProof = async (address: string): Promise<string[]> => {
+	try {
+		const result = await fetch('https://appworks.lee-conn.workers.dev/whitelist', {
+			method: 'POST',
+			body: JSON.stringify({ address }),
+		});
+
+		const { data } = await result.json();
+
+		return data;
+	} catch (error) {
+		return [];
+	}
+};
+
+enum WhitelistStatus {
+	YES = 'Yes',
+	NO = 'No',
+	IN_PROGRESS = 'In progress',
+}
+
 interface MyAppWorksState {
 	balance: number;
 	addressMintedBalance: number[];
-	inWhitelist: boolean;
+	inWhitelist: WhitelistStatus;
+	proof: string[];
 }
 
 export const useMyAppWorks = (myAddress: string) => {
@@ -152,7 +174,8 @@ export const useMyAppWorks = (myAddress: string) => {
 	const [myAppWorksState, setMyAppWorksState] = useState<MyAppWorksState>({
 		balance: 0,
 		addressMintedBalance: [],
-		inWhitelist: false,
+		inWhitelist: WhitelistStatus.NO,
+		proof: [],
 	});
 	const [contract, setContract] = useState<null | AppWorks>(null);
 
@@ -196,6 +219,27 @@ export const useMyAppWorks = (myAddress: string) => {
 		}
 	};
 
+	const checkInWhitelist = useCallback(async () => {
+		if (contract !== null) {
+			const proof = await getProof(myAddress);
+
+			if (proof.length === 0) {
+				console.log('Not in whitelist');
+				setMyAppWorksState(s => ({ ...s, inWhitelist: WhitelistStatus.NO }));
+				return;
+			}
+
+			setMyAppWorksState(s => ({ ...s, inWhitelist: WhitelistStatus.IN_PROGRESS }));
+
+			console.log('Get Balance?');
+			const newBalance = await contract.methods.checkInWhitelist(proof).call();
+
+			if (newBalance) {
+				setMyAppWorksState(s => ({ ...s, inWhitelist: WhitelistStatus.YES, proof }));
+			}
+		}
+	}, [contract, myAddress]);
+
 	useEffect(() => {
 		const getContract = async () => {
 			if (wallet !== null) {
@@ -220,7 +264,8 @@ export const useMyAppWorks = (myAddress: string) => {
 	useEffect(() => {
 		getBalance();
 		getAddressMintedBalance();
-	}, [getBalance, getAddressMintedBalance]);
+		checkInWhitelist();
+	}, [getBalance, getAddressMintedBalance, checkInWhitelist]);
 
 	return { contract, mint, myAppWorksState };
 };

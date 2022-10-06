@@ -33,7 +33,7 @@ const MintBox: React.FC<MintBoxProperty> = ({ className, address, appWorksState 
 
 	return (
 		<div className={styles.mintBox}>
-			<div>In Whitelist: {myAppWorksState.inWhitelist ? 'Yes' : 'No'}</div>
+			<div>In Whitelist: {myAppWorksState.inWhitelist}</div>
 			<div>Can mint quantity: {canMintQuantity}</div>
 			<div className={styles.action}>
 				Mint Quantity:
