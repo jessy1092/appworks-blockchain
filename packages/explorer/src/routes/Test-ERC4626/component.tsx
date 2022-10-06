@@ -2,6 +2,7 @@ import styles from './index.module.css';
 
 import Dashboard from 'components/Dashboard';
 import { isSupportWeb3, useConnectWeb3, Wallet } from 'models/wallet';
+import ButtonConnect from 'components/ButtonConnect';
 
 function App() {
 	const { myWallet, address, connect } = useConnectWeb3();
@@ -11,13 +12,11 @@ function App() {
 			<div className={styles.app}>
 				{isSupportWeb3 && (
 					<>
-						{address === '' ? (
-							<button className={styles.address} onClick={connect}>
-								Connect MetaMask
-							</button>
-						) : (
-							<div className={styles.address}>Wallet: {address}</div>
-						)}
+						<ButtonConnect
+							className={styles.connectButton}
+							address={address}
+							connect={connect}
+						></ButtonConnect>
 
 						<Dashboard address={address}></Dashboard>
 					</>
