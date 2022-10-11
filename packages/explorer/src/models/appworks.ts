@@ -211,7 +211,9 @@ export const useMyAppWorks = (myAddress: string) => {
 	const mint = async (number: number) => {
 		console.log('mint??????', contract);
 		if (contract !== null) {
-			const recipt = await contract.methods.mint(number).send();
+			const recipt = await contract.methods.mint(number).send({
+				value: Web3.utils.toWei(new BigNumber(number).multipliedBy(0.01).toString(), 'ether'),
+			});
 
 			console.log('mint finish', recipt);
 
@@ -222,7 +224,9 @@ export const useMyAppWorks = (myAddress: string) => {
 	const earlyMint = async (number: number) => {
 		console.log('early mint??????', contract);
 		if (contract !== null && myAppWorksState.proof.length > 0) {
-			const recipt = await contract.methods.earlyMint(myAppWorksState.proof, number).send();
+			const recipt = await contract.methods.earlyMint(myAppWorksState.proof, number).send({
+				value: Web3.utils.toWei(new BigNumber(number).multipliedBy(0.01).toString(), 'ether'),
+			});
 
 			console.log('early, mint finish', recipt);
 
