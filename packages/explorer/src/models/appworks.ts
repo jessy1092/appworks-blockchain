@@ -249,7 +249,7 @@ export const useMyAppWorks = (myAddress: string) => {
 			console.log('Check in whitelist?', proof, myAddress);
 			const newBalance = await contract.methods.checkInWhitelist(proof).call();
 
-			console.log(newBalance);
+			console.log('Yes?', newBalance);
 
 			if (newBalance) {
 				setMyAppWorksState(s => ({ ...s, inWhitelist: WhitelistStatus.YES, proof }));
@@ -260,14 +260,13 @@ export const useMyAppWorks = (myAddress: string) => {
 	useEffect(() => {
 		const getContract = async () => {
 			if (wallet !== null) {
-				const gasPrice = await wallet.eth.getGasPrice();
+				// const gasPrice = await wallet.eth.getGasPrice();
 
 				const contract = new wallet.eth.Contract(
 					AppWorksAbi.abi as AbiItem[],
 					ContractData.proxies[0].address,
 					{
 						from: myAddress, // default from address
-						gasPrice,
 					},
 				) as any as AppWorks;
 
