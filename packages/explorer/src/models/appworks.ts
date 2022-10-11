@@ -246,8 +246,10 @@ export const useMyAppWorks = (myAddress: string) => {
 
 			setMyAppWorksState(s => ({ ...s, inWhitelist: WhitelistStatus.IN_PROGRESS }));
 
-			console.log('Get Balance?');
+			console.log('Check in whitelist?', proof, myAddress);
 			const newBalance = await contract.methods.checkInWhitelist(proof).call();
+
+			console.log(newBalance);
 
 			if (newBalance) {
 				setMyAppWorksState(s => ({ ...s, inWhitelist: WhitelistStatus.YES, proof }));
