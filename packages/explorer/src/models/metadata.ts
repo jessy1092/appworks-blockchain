@@ -1,4 +1,4 @@
-import { createAction, handleActions } from 'redux-actions';
+import { Action, createAction, handleActions } from 'redux-actions';
 
 interface Attributes {
 	trait_type: string;
@@ -6,7 +6,7 @@ interface Attributes {
 	display_type?: string;
 }
 
-interface Metadata {
+export interface Metadata {
 	description: string;
 	external_url: string;
 	image: string;
@@ -49,20 +49,28 @@ export const getBlindMetadata = createAction<Promise<GetMetadataReturn>, string>
 	},
 );
 
+export const setupShowNFTId = createAction<string, string>('SETUP_SHOW_NFT_ID', id => id);
+
 export type State = {
 	data: {
 		[id: string]: Metadata;
 	};
+	show: string;
 };
 
-export const defaultState: State = { data: {} };
+export const defaultState: State = { data: {}, show: 'blind' };
 
 export const reducer = {
-	metadata: handleActions<State, GetMetadataReturn>(
+	metadata: handleActions<State, any>(
 		{
-			GET_METADATA_FULFILLED: (state, action) => ({
+			GET_METADATA_FULFILLED: (state, action: Action<GetMetadataReturn>) => ({
 				...state,
 				data: { ...state.data, ...action.payload },
+			}),
+
+			SETUP_SHOW_NFT_ID: (state, action: Action<string>) => ({
+				...state,
+				show: action.payload,
 			}),
 		},
 		defaultState,

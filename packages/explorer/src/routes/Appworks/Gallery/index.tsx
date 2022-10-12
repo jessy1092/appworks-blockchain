@@ -1,3 +1,4 @@
+import { setupShowNFTId } from 'models/metadata';
 import React from 'react';
 
 import { CustomRoute } from 'routes/hook';
@@ -24,8 +25,9 @@ const routes: CustomRoute = {
 			path: '/:id',
 			components: () => [import(/* webpackChunkName: 'nft' */ './component')],
 			render: ([NFT]) => <NFT />,
-			onEnter: async ({ store }) => {
+			onEnter: async ({ store, params }) => {
 				console.log('on Enter nft');
+				store.dispatch(setupShowNFTId(params.id as string));
 				console.log('on Enter nft / end');
 			},
 		},
