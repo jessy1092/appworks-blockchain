@@ -169,6 +169,17 @@ interface MyAppWorksState {
 	proof: string[];
 }
 
+export enum TransactionStatus {
+	PENDING = 'Pending',
+	CONFIRM = 'Confirm',
+	EMPTY = '',
+}
+
+interface TransactionState {
+	hash: string;
+	status: TransactionStatus;
+}
+
 export const useMyAppWorks = (myAddress: string) => {
 	const { wallet } = useWallet();
 	const [myAppWorksState, setMyAppWorksState] = useState<MyAppWorksState>({
@@ -178,6 +189,11 @@ export const useMyAppWorks = (myAddress: string) => {
 		proof: [],
 	});
 	const [contract, setContract] = useState<null | AppWorks>(null);
+
+	const [transaction, setTransaction] = useState<TransactionState>({
+		hash: '',
+		status: TransactionStatus.EMPTY,
+	});
 
 	const getBalance = useCallback(async () => {
 		if (contract !== null) {
@@ -211,9 +227,17 @@ export const useMyAppWorks = (myAddress: string) => {
 	const mint = async (number: number) => {
 		console.log('mint??????', contract);
 		if (contract !== null) {
-			const recipt = await contract.methods.mint(number).send({
-				value: Web3.utils.toWei(new BigNumber(number).multipliedBy(0.01).toString(), 'ether'),
-			});
+			const recipt = await contract.methods
+				.mint(number)
+				.send({
+					value: Web3.utils.toWei(new BigNumber(number).multipliedBy(0.01).toString(), 'ether'),
+				})
+				.once('transactionHash', txHash => {
+					// get pending txhash
+					setTransaction({ hash: txHash, status: TransactionStatus.PENDING });
+				});
+
+			setTransaction(s => ({ ...s, status: TransactionStatus.CONFIRM }));
 
 			console.log('mint finish', recipt);
 
@@ -224,9 +248,17 @@ export const useMyAppWorks = (myAddress: string) => {
 	const earlyMint = async (number: number) => {
 		console.log('early mint??????', contract);
 		if (contract !== null && myAppWorksState.proof.length > 0) {
-			const recipt = await contract.methods.earlyMint(myAppWorksState.proof, number).send({
-				value: Web3.utils.toWei(new BigNumber(number).multipliedBy(0.01).toString(), 'ether'),
-			});
+			const recipt = await contract.methods
+				.earlyMint(myAppWorksState.proof, number)
+				.send({
+					value: Web3.utils.toWei(new BigNumber(number).multipliedBy(0.01).toString(), 'ether'),
+				})
+				.once('transactionHash', txHash => {
+					// get pending txhash
+					setTransaction({ hash: txHash, status: TransactionStatus.PENDING });
+				});
+
+			setTransaction(s => ({ ...s, status: TransactionStatus.CONFIRM }));
 
 			console.log('early, mint finish', recipt);
 
@@ -283,5 +315,5 @@ export const useMyAppWorks = (myAddress: string) => {
 		checkInWhitelist();
 	}, [getBalance, getAddressMintedBalance, checkInWhitelist]);
 
-	return { contract, mint, myAppWorksState, earlyMint };
+	return { contract, mint, myAppWorksState, earlyMint, transaction };
 };

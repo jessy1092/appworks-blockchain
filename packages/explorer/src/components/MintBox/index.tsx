@@ -11,7 +11,7 @@ interface MintBoxProperty {
 }
 
 const MintBox: React.FC<MintBoxProperty> = ({ className, address, appWorksState }) => {
-	const { mint, earlyMint, myAppWorksState } = useMyAppWorks(address);
+	const { mint, earlyMint, myAppWorksState, transaction } = useMyAppWorks(address);
 
 	const [quantity, setQuantity] = useState<number>(1);
 
@@ -85,6 +85,18 @@ const MintBox: React.FC<MintBoxProperty> = ({ className, address, appWorksState 
 					<button className={styles.mint} onClick={onMint}>
 						Mint
 					</button>
+				</div>
+			)}
+			{transaction.hash !== '' && (
+				<div>
+					{transaction.status}:{' '}
+					<a
+						href={`https://goerli.etherscan.io/tx/${transaction.hash}`}
+						target="_blank"
+						rel="noreferrer"
+					>
+						{transaction.hash}
+					</a>
 				</div>
 			)}
 		</div>
