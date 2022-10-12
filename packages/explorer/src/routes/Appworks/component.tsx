@@ -2,7 +2,6 @@ import React from 'react';
 
 import { useAppWorks } from 'models/appworks';
 import { useConnectWeb3, Wallet } from 'models/wallet';
-import { useHistory } from 'models/routing';
 
 import ButtonConnect from 'components/ButtonConnect';
 import MintBox from 'components/MintBox';

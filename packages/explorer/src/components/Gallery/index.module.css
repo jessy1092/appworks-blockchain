@@ -5,13 +5,17 @@
 }
 
 .gallery > .card {
+	display: flex;
+	flex-direction: column;
 	border-radius: 8px;
 	border: 1px solid transparent;
-	border-color: #646cff;
-	width: calc(20% - 16px);
+	width: calc(25% - 16px);
 	margin: 8px;
 	overflow: hidden;
 	cursor: pointer;
+	background-color: #1a1a1a;
+	transition: border-color 0.25s;
+	color: white;
 }
 
 .card > img {
@@ -19,7 +23,11 @@
 	width: 100%;
 }
 
-.card > img:hover {
+.card:hover {
+	border-color: #646cff;
+}
+
+.card:hover > img {
 	animation: backgroundAnimate 5s forwards;
 }
 
@@ -33,5 +41,5 @@
 }
 
 .card > .title {
-	margin: 6px;
+	margin: 8px;
 }
