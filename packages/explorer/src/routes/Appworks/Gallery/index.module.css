@@ -20,6 +20,15 @@
 	width: 100%;
 }
 
+.container > .head {
+	display: flex;
+	align-items: center;
+}
+
+.head > button {
+	margin-left: 16px;
+}
+
 .container > .list {
 	display: flex;
 	flex-wrap: wrap;
