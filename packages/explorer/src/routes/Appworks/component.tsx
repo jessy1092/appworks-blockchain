@@ -2,11 +2,12 @@ import React from 'react';
 
 import { useAppWorks } from 'models/appworks';
 import { useConnectWeb3, Wallet } from 'models/wallet';
+import { useHistory } from 'models/routing';
 
-import styles from './index.module.css';
 import ButtonConnect from 'components/ButtonConnect';
 import MintBox from 'components/MintBox';
-import { useHistory } from 'models/routing';
+
+import styles from './index.module.css';
 
 const AppWroks: React.FC = () => {
 	const appWorksState = useAppWorks();

@@ -6,7 +6,7 @@ import GalleryRoute from './Gallery';
 
 const routes: CustomRoute = {
 	path: '/appworks',
-	components: () => [import(/* webpackChunkName: 'appworks' */ './component')],
+	components: () => [],
 	render: (_, children) => children,
 	onEnter: async ({ store }) => {
 		console.log('on Enter appworks');
@@ -16,7 +16,7 @@ const routes: CustomRoute = {
 	children: [
 		{
 			path: '',
-			components: () => [import(/* webpackChunkName: 'home' */ './component')],
+			components: () => [import(/* webpackChunkName: 'appworks' */ './component')],
 			render: ([AppWroks]) => <AppWroks />,
 			onEnter: async ({ store }) => {
 				console.log('on Enter appworks home');

@@ -4,11 +4,31 @@ import { CustomRoute } from 'routes/hook';
 
 const routes: CustomRoute = {
 	path: '/gallery',
-	components: () => [import(/* webpackChunkName: 'appworks' */ './component')],
-	render: ([Gallery]) => <Gallery />,
+	components: () => [],
+	render: (_, children) => children,
 	onEnter: async ({ store }) => {
 		console.log('on Enter appworks');
 		console.log('on Enter appworks / end');
 	},
+	children: [
+		{
+			path: '',
+			components: () => [import(/* webpackChunkName: 'gallery' */ './Home')],
+			render: ([Gallery]) => <Gallery />,
+			onEnter: async ({ store }) => {
+				console.log('on Enter gallery home');
+				console.log('on Enter gallery home / end');
+			},
+		},
+		{
+			path: '/:id',
+			components: () => [import(/* webpackChunkName: 'nft' */ './component')],
+			render: ([NFT]) => <NFT />,
+			onEnter: async ({ store }) => {
+				console.log('on Enter nft');
+				console.log('on Enter nft / end');
+			},
+		},
+	],
 };
 export default routes;
