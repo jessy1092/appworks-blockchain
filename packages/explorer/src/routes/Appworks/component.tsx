@@ -8,16 +8,11 @@ import ButtonConnect from 'components/ButtonConnect';
 import MintBox from 'components/MintBox';
 
 import styles from './index.module.css';
+import Link from 'components/Link';
 
 const AppWroks: React.FC = () => {
 	const appWorksState = useAppWorks();
 	const { myWallet, address, connect } = useConnectWeb3();
-	const history = useHistory();
-
-	const onClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
-		e.preventDefault();
-		history.push('/appworks/gallery');
-	};
 
 	return (
 		<Wallet.Provider value={myWallet}>
@@ -35,9 +30,7 @@ const AppWroks: React.FC = () => {
 
 					<ButtonConnect address={address} connect={connect}></ButtonConnect>
 					{address !== '' && <MintBox appWorksState={appWorksState} address={address}></MintBox>}
-					<a href="/appworks/gallery" onClick={onClick}>
-						Go to gallery
-					</a>
+					<Link href="/appworks/gallery">Go to the gallery</Link>
 				</div>
 			</div>
 		</Wallet.Provider>
