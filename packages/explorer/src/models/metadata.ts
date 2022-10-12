@@ -18,16 +18,30 @@ interface GetMetadataReturn {
 	[id: string]: Metadata;
 }
 
-// export const getMetadata = createAction<GetMetadataReturn, number[]>('GET_METADATA', async ids => {
-// 	return {};
-// });
-
-export const getBlindMetadata = createAction<Promise<GetMetadataReturn>>(
+export const getMetadata = createAction<Promise<GetMetadataReturn>, string, number[]>(
 	'GET_METADATA',
-	async () => {
-		const result = await fetch(
-			'https://pub-a643c8f17c284976bce3b03942a4ef02.r2.dev/metadata/blind',
+	async (baseURI, ids) => {
+		const data = await Promise.all(
+			ids.map(async id => {
+				const result = await fetch(`${baseURI}${id}`);
+				return result.json();
+			}),
 		);
+
+		const metadata: GetMetadataReturn = {};
+
+		ids.forEach((id, index) => {
+			metadata[id] = data[index];
+		});
+
+		return metadata;
+	},
+);
+
+export const getBlindMetadata = createAction<Promise<GetMetadataReturn>, string>(
+	'GET_METADATA',
+	async baseURI => {
+		const result = await fetch(`${baseURI}blind`);
 
 		const data = await result.json();
 

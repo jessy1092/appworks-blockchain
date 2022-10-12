@@ -1,4 +1,4 @@
-import { getBlindMetadata } from 'models/metadata';
+import { getBlindMetadata, getMetadata } from 'models/metadata';
 import { State } from 'models/reducers';
 import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
@@ -8,17 +8,22 @@ interface GalleryProperty {
 	className?: string;
 	data: number[];
 	revealed: boolean;
+	baseURI: string;
 }
 
-const Gallery: React.FC<GalleryProperty> = ({ className, data, revealed }) => {
+const Gallery: React.FC<GalleryProperty> = ({ className, data, revealed, baseURI }) => {
 	const dispatch = useDispatch();
 	const metadata = useSelector((state: State) => state.metadata.data);
 
 	useEffect(() => {
-		if (!revealed) {
-			dispatch(getBlindMetadata());
+		if (baseURI !== '') {
+			if (!revealed) {
+				dispatch(getBlindMetadata(baseURI));
+			} else {
+				dispatch(getMetadata(baseURI, data));
+			}
 		}
-	}, [revealed, dispatch]);
+	}, [revealed, dispatch, baseURI, data]);
 
 	return (
 		<div className={styles.gallery}>
@@ -34,7 +39,7 @@ const Gallery: React.FC<GalleryProperty> = ({ className, data, revealed }) => {
 
 				return (
 					<div className={styles.card} key={id}>
-						<img src={metadata.blind.image} alt="blind"></img>
+						<img src={metadata?.blind?.image} alt="blind"></img>
 						<div className={styles.title}>AppWorks #{id}</div>
 					</div>
 				);

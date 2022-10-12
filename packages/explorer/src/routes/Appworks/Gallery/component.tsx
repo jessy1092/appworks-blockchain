@@ -21,7 +21,11 @@ const Home: React.FC = () => {
 				<div className={styles.container}>
 					<h2>All NFT</h2>
 					<div className={styles.list}>
-						<Gallery data={allData} revealed={appWorksState.revealed}></Gallery>
+						<Gallery
+							data={allData}
+							revealed={appWorksState.revealed}
+							baseURI={appWorksState.baseURI}
+						></Gallery>
 					</div>
 				</div>
 			</div>

@@ -8,6 +8,11 @@
 	padding-top: 120px;
 }
 
+.gallery > button {
+	display: inline-flex;
+	width: fit-content;
+}
+
 .container {
 	display: flex;
 	flex-direction: column;
@@ -18,7 +23,6 @@
 .container > .list {
 	display: flex;
 	flex-wrap: wrap;
-	margin: 0 -8px;
 }
 
 .list > .card {
