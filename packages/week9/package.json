@@ -13,7 +13,8 @@
 		"blocknode": "hardhat node",
 		"watch": "remixd -s . --remix-ide https://remix.ethereum.org",
 		"clean": "rm -rf .deps && rm -rf artifacts && rm -rf cache && rm -rf web3-types && rm -rf test-types",
-		"whitelist": "ts-node node-whitelist.ts"
+		"whitelist": "ts-node node-whitelist.ts",
+		"r2": "ts-node ./nft/node-r2.ts"
 	},
 	"devDependencies": {
 		"@ethersproject/abi": "^5.7.0",
@@ -45,6 +46,7 @@
 	"dependencies": {
 		"@openzeppelin/contracts": "^4.7.3",
 		"@openzeppelin/contracts-upgradeable": "4.7.3",
+		"aws-sdk": "^2.1231.0",
 		"keccak256": "^1.0.6",
 		"merkletreejs": "^0.2.32",
 		"web3": "^1.8.0"
