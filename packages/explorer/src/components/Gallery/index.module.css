@@ -1,0 +1,36 @@
+.gallery {
+	display: flex;
+	flex-wrap: wrap;
+	margin: 0 -8px;
+}
+
+.gallery > .card {
+	border-radius: 8px;
+	border: 1px solid transparent;
+	border-color: #646cff;
+	width: calc(20% - 16px);
+	margin: 8px;
+	overflow: hidden;
+}
+
+.card > img {
+	object-fit: contain;
+	width: 100%;
+}
+
+.card > img:hover {
+	animation: backgroundAnimate 5s forwards;
+}
+
+@keyframes backgroundAnimate {
+	0% {
+		transform: scale(1);
+	}
+	100% {
+		transform: scale(1.1);
+	}
+}
+
+.card > .title {
+	margin: 6px;
+}

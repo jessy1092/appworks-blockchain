@@ -6,10 +6,13 @@ import { useConnectWeb3, Wallet } from 'models/wallet';
 import styles from './index.module.css';
 import ButtonConnect from 'components/ButtonConnect';
 import { range } from 'utility';
+import Gallery from 'components/Gallery';
 
 const Home: React.FC = () => {
 	const appWorksState = useAppWorks();
 	const { myWallet, address, connect } = useConnectWeb3();
+
+	const allData = range(1, appWorksState.totalSupply);
 
 	return (
 		<Wallet.Provider value={myWallet}>
@@ -18,15 +21,7 @@ const Home: React.FC = () => {
 				<div className={styles.container}>
 					<h2>All NFT</h2>
 					<div className={styles.list}>
-						{range(1, appWorksState.totalSupply).map(id => (
-							<div className={styles.card}>
-								<img
-									src="https://pub-a643c8f17c284976bce3b03942a4ef02.r2.dev/images/00062-374625499-a%20Beautiful%20blind%20box%20at%20night%2C%20by%20Christopher%20Balaska.png"
-									alt="blind"
-								></img>
-								<div className={styles.title}>AppWorks #{id}</div>
-							</div>
-						))}
+						<Gallery data={allData} revealed={appWorksState.revealed}></Gallery>
 					</div>
 				</div>
 			</div>
