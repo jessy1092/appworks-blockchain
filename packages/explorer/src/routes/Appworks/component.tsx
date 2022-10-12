@@ -7,7 +7,7 @@ import styles from './index.module.css';
 import ButtonConnect from 'components/ButtonConnect';
 import MintBox from 'components/MintBox';
 
-const Home: React.FC = () => {
+const AppWroks: React.FC = () => {
 	const appWorksState = useAppWorks();
 	const { myWallet, address, connect } = useConnectWeb3();
 
@@ -33,4 +33,4 @@ const Home: React.FC = () => {
 	);
 };
 
-export default Home;
+export default AppWroks;

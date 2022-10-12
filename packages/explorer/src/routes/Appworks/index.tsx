@@ -2,16 +2,28 @@ import React from 'react';
 
 import { CustomRoute } from 'routes/hook';
 
-export const sleep = (time: number): Promise<undefined> =>
-	new Promise(resolve => setTimeout(resolve, time));
+import GalleryRoute from './Gallery';
 
 const routes: CustomRoute = {
 	path: '/appworks',
 	components: () => [import(/* webpackChunkName: 'appworks' */ './component')],
-	render: ([Vault]) => <Vault />,
+	render: (_, children) => children,
 	onEnter: async ({ store }) => {
 		console.log('on Enter appworks');
 		console.log('on Enter appworks / end');
 	},
+
+	children: [
+		{
+			path: '',
+			components: () => [import(/* webpackChunkName: 'home' */ './component')],
+			render: ([AppWroks]) => <AppWroks />,
+			onEnter: async ({ store }) => {
+				console.log('on Enter appworks home');
+				console.log('on Enter appworks home / end');
+			},
+		},
+		GalleryRoute,
+	],
 };
 export default routes;

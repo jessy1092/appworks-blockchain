@@ -1,0 +1,53 @@
+.gallery {
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	margin: 0 auto;
+	max-width: 800px;
+	width: 100%;
+	padding-top: 120px;
+}
+
+.container {
+	display: flex;
+	flex-direction: column;
+	max-width: 800px;
+	width: 100%;
+}
+
+.container > .list {
+	display: flex;
+	flex-wrap: wrap;
+	margin: 0 -8px;
+}
+
+.list > .card {
+	border-radius: 8px;
+	border: 1px solid transparent;
+	border-color: #646cff;
+	width: 200px;
+	margin: 8px;
+	overflow: hidden;
+}
+
+.card > img {
+	object-fit: contain;
+	width: 100%;
+}
+
+.card > img:hover {
+	animation: backgroundAnimate 5s forwards;
+}
+
+@keyframes backgroundAnimate {
+	0% {
+		transform: scale(1);
+	}
+	100% {
+		transform: scale(1.1);
+	}
+}
+
+.card > .title {
+	margin: 6px;
+}
