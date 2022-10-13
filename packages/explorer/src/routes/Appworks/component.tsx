@@ -21,11 +21,22 @@ const AppWroks: React.FC = () => {
 				<div className={styles.container}>
 					<div className={styles.title}>AppWorks Art NFT</div>
 					<div className={styles.subTitle}>Next generation art about school</div>
-
-					<div className={styles.time}>Early Mint: 10/11</div>
-					<div className={styles.time}>Public Mint: 10/13</div>
-					<div className={styles.time}>Reveal: 10/15</div>
-					<div className={styles.time}>Price: {appWorksState.price.toString()} GoerliETH</div>
+					<div className={styles.detail}>
+						<div className={styles.left}>
+							<div className={styles.time}>Early Mint: 10/11</div>
+							<div className={styles.time}>Public Mint: 10/13</div>
+							<div className={styles.time}>Reveal: 10/15</div>
+							<div className={styles.time}>Price: {appWorksState.price.toString()} GoerliETH</div>
+						</div>
+						<div>
+							<div className={styles.status}>
+								Minted: {appWorksState.totalSupply} / Total: {appWorksState.maxSupply}
+							</div>
+							<Link className={styles.link} href="/appworks/gallery">
+								Go to the gallery
+							</Link>
+						</div>
+					</div>
 
 					<ButtonConnect
 						className={styles.address}
@@ -39,9 +50,6 @@ const AppWroks: React.FC = () => {
 							address={address}
 						></MintBox>
 					)}
-					<Link className={styles.link} href="/appworks/gallery">
-						Go to the gallery
-					</Link>
 				</div>
 			</div>
 		</Wallet.Provider>
