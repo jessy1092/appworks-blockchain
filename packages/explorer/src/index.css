@@ -58,6 +58,7 @@ button {
 	font-weight: 500;
 	font-family: inherit;
 	background-color: #1a1a1a;
+	background: #1a1a1a;
 	cursor: pointer;
 	transition: border-color 0.25s;
 	color: white;
@@ -79,7 +80,9 @@ input {
 	font-weight: 500;
 	font-family: inherit;
 	background-color: #1a1a1a;
+	background: #1a1a1a;
 	transition: border-color 0.25s;
+	color: white;
 }
 
 input:hover {
