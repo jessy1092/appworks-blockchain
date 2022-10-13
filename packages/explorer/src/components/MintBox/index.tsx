@@ -26,7 +26,14 @@ const MintBox: React.FC<MintBoxProperty> = ({ className, address, appWorksState 
 	const canMint =
 		(appWorksState.earlyMintActive && myAppWorksState.inWhitelist) || appWorksState.mintActive;
 
+	const leftQuantity = appWorksState.maxSupply - appWorksState.totalSupply;
+
 	const onMint = () => {
+		if (quantity <= 0 || quantity > leftQuantity || quantity > canMintQuantity) {
+			console.log('Invalid mint quantity', quantity);
+			return;
+		}
+
 		if (appWorksState.mintActive && quantity > 0) {
 			mint(quantity);
 			return;
@@ -41,7 +48,7 @@ const MintBox: React.FC<MintBoxProperty> = ({ className, address, appWorksState 
 		try {
 			const newQuantity = parseInt(e.target.value, 10);
 
-			if (newQuantity < canMintQuantity && newQuantity > 0) {
+			if (newQuantity <= canMintQuantity && newQuantity > 0 && newQuantity <= leftQuantity) {
 				setQuantity(newQuantity);
 			}
 		} catch (e) {
@@ -50,7 +57,7 @@ const MintBox: React.FC<MintBoxProperty> = ({ className, address, appWorksState 
 	};
 
 	const increaseQuantity = () => {
-		if (quantity + 1 <= canMintQuantity) {
+		if (quantity + 1 <= canMintQuantity && quantity + 1 <= leftQuantity) {
 			setQuantity(quantity + 1);
 		}
 	};

@@ -13,6 +13,8 @@ const AppWroks: React.FC = () => {
 	const appWorksState = useAppWorks();
 	const { myWallet, address, connect } = useConnectWeb3();
 
+	const isSoldOut = appWorksState.totalSupply === appWorksState.maxSupply;
+
 	return (
 		<Wallet.Provider value={myWallet}>
 			<div className={styles.appworks}>
@@ -32,6 +34,7 @@ const AppWroks: React.FC = () => {
 							<div className={styles.status}>
 								Minted: {appWorksState.totalSupply} / Total: {appWorksState.maxSupply}
 							</div>
+							{isSoldOut && <div className={styles.soldOut}>SOLD OUT</div>}
 							<Link className={styles.link} href="/appworks/gallery">
 								Go to the gallery
 							</Link>
@@ -43,7 +46,7 @@ const AppWroks: React.FC = () => {
 						address={address}
 						connect={connect}
 					></ButtonConnect>
-					{address !== '' && (
+					{address !== '' && !isSoldOut && (
 						<MintBox
 							className={styles.box}
 							appWorksState={appWorksState}
