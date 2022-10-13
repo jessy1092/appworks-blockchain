@@ -317,3 +317,65 @@ export const useMyAppWorks = (myAddress: string) => {
 
 	return { contract, mint, myAppWorksState, earlyMint, transaction };
 };
+
+interface AppWorksByTokenId {
+	ownerAddress: string;
+}
+
+const subscribeAppWorksByTokenId = (tokenId: string, onUpdate = (t: AppWorksByTokenId) => {}) => {
+	const web3Socket = new Web3(
+		new Web3.providers.WebsocketProvider(
+			`wss://eth-goerli.g.alchemy.com/v2/${process.env.REACT_APP_WEBSOCKET_KEY}`,
+		),
+	);
+
+	const myContract = new web3Socket.eth.Contract(
+		AppWorksAbi.abi as AbiItem[],
+		ContractData.proxies[0].address,
+	) as any as AppWorks;
+
+	const update = async () => {
+		console.log('Update AppWorksByTokenId State');
+		const ownerAddress = await myContract.methods.ownerOf(tokenId).call();
+
+		onUpdate({
+			ownerAddress,
+		});
+	};
+
+	const eventListenerHandler = (event: normalEvent) => {
+		console.log('all Event');
+		console.log(event); // same results as the optional callback above
+		console.log(event.returnValues);
+		update();
+	};
+
+	const eventListener = myContract.events.allEvents({}).on('data', eventListenerHandler);
+
+	console.log('First Subscribe');
+	// First Init
+	update();
+
+	return () => {
+		console.log('cancel subscribe');
+		eventListener.off('data', eventListenerHandler);
+	};
+};
+
+export const useAppWorksByTokenId = (tokenId: string) => {
+	const [appWorksByTokenIdState, setAppWorksByTokenIdState] = useState<AppWorksByTokenId>({
+		ownerAddress: '',
+	});
+
+	useEffect(() => {
+		if (tokenId !== 'blind') {
+			const unSubscribe = subscribeAppWorksByTokenId(tokenId, result => {
+				setAppWorksByTokenIdState(result);
+			});
+
+			return unSubscribe;
+		}
+	}, [tokenId]);
+
+	return appWorksByTokenIdState;
+};

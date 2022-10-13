@@ -4,7 +4,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import Link from 'components/Link';
 
 import { State } from 'models/reducers';
-import { useAppWorks } from 'models/appworks';
+import { useAppWorks, useAppWorksByTokenId } from 'models/appworks';
 import { getBlindMetadata, getMetadata, State as MetadataState, Metadata } from 'models/metadata';
 
 import styles from './index.module.css';
@@ -14,34 +14,40 @@ interface NFTProps {
 	id: string;
 }
 
-const NFT: React.FC<NFTProps> = ({ id, data }) => (
-	<div className={styles.nft}>
-		<img src={data.image} alt="blind"></img>
-		<h2>Name</h2>
-		<div>{data.name}</div>
-		<h2>Description</h2>
-		<div>{data.description}</div>
-		{data.attributes.map(attribute => (
-			<div key={attribute.trait_type}>
-				<h2>{attribute.trait_type}</h2>
-				<div>{attribute.value}</div>
-			</div>
-		))}
-		{id !== 'blind' && (
-			<a
-				className={styles.link}
-				href={`https://testnets.opensea.io/assets/goerli/0x753bf3bd4b205240aa65a170e174e3c0ed3369ee/${id}`}
-				target="_blank"
-				rel="noreferrer"
-			>
-				On the OpenSea
-			</a>
-		)}
-		<Link className={styles.link} href="/appworks/gallery">
-			Back to the gallery
-		</Link>
-	</div>
-);
+const NFT: React.FC<NFTProps> = ({ id, data }) => {
+	const { ownerAddress } = useAppWorksByTokenId(id);
+
+	return (
+		<div className={styles.nft}>
+			<img src={data.image} alt="blind"></img>
+			<h2>Owner</h2>
+			<div>{ownerAddress}</div>
+			<h2>Name</h2>
+			<div>{data.name}</div>
+			<h2>Description</h2>
+			<div>{data.description}</div>
+			{data.attributes.map(attribute => (
+				<div key={attribute.trait_type}>
+					<h2>{attribute.trait_type}</h2>
+					<div>{attribute.value}</div>
+				</div>
+			))}
+			{id !== 'blind' && (
+				<a
+					className={styles.link}
+					href={`https://testnets.opensea.io/assets/goerli/0x753bf3bd4b205240aa65a170e174e3c0ed3369ee/${id}`}
+					target="_blank"
+					rel="noreferrer"
+				>
+					On the OpenSea
+				</a>
+			)}
+			<Link className={styles.link} href="/appworks/gallery">
+				Back to the gallery
+			</Link>
+		</div>
+	);
+};
 
 interface BlindNFTProps {
 	baseURI: string;
