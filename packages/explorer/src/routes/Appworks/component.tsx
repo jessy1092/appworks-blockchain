@@ -27,9 +27,21 @@ const AppWroks: React.FC = () => {
 					<div className={styles.time}>Reveal: 10/15</div>
 					<div className={styles.time}>Price: {appWorksState.price.toString()} GoerliETH</div>
 
-					<ButtonConnect address={address} connect={connect}></ButtonConnect>
-					{address !== '' && <MintBox appWorksState={appWorksState} address={address}></MintBox>}
-					<Link href="/appworks/gallery">Go to the gallery</Link>
+					<ButtonConnect
+						className={styles.address}
+						address={address}
+						connect={connect}
+					></ButtonConnect>
+					{address !== '' && (
+						<MintBox
+							className={styles.box}
+							appWorksState={appWorksState}
+							address={address}
+						></MintBox>
+					)}
+					<Link className={styles.link} href="/appworks/gallery">
+						Go to the gallery
+					</Link>
 				</div>
 			</div>
 		</Wallet.Provider>

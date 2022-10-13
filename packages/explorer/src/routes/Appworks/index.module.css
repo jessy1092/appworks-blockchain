@@ -71,3 +71,15 @@
 	color: white;
 	margin-bottom: 20px;
 }
+
+.link {
+	display: flex;
+}
+
+.address {
+	margin-bottom: 10px;
+}
+
+.box {
+	margin-bottom: 10px;
+}

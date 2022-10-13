@@ -1,4 +1,5 @@
 import { ChangeEvent, useEffect, useState } from 'react';
+import classnames from 'classnames';
 
 import { AppWorksState, useMyAppWorks } from 'models/appworks';
 
@@ -68,7 +69,7 @@ const MintBox: React.FC<MintBoxProperty> = ({ className, address, appWorksState 
 	}, [canMintQuantity, quantity, myAppWorksState.balance]);
 
 	return (
-		<div className={styles.mintBox}>
+		<div className={classnames(className, styles.mintBox)}>
 			<div>In Whitelist: {myAppWorksState.inWhitelist}</div>
 			<div>Can mint quantity: {canMintQuantity}</div>
 			{canMint && canMintQuantity > 0 && (
