@@ -15,7 +15,10 @@
 		"clean": "rm -rf .deps && rm -rf artifacts && rm -rf cache && rm -rf web3-types && rm -rf test-types",
 		"whitelist": "ts-node node-whitelist.ts",
 		"selector": "ts-node ./node-selector.ts",
-		"r2": "ts-node ./nft/node-r2.ts"
+		"r2": "ts-node ./nft/node-r2.ts",
+		"nft": "ts-node ./nft/node-nft-select.ts",
+		"subscribe": "ts-node ./nft/node-subscribe-mint.ts",
+		"nft:upload": "ts-node ./nft/node-upload-metadata.ts"
 	},
 	"devDependencies": {
 		"@ethersproject/abi": "^5.7.0",
