@@ -27,7 +27,7 @@ describe('AppWorks', function () {
 			kind: 'uups',
 		})) as AppWorks;
 
-		const appWorksV3 = (await upgrades.upgradeProxy(appWorks.address, AppWorksV2)) as AppWorksV2;
+		const appWorksV2 = (await upgrades.upgradeProxy(appWorks.address, AppWorksV2)) as AppWorksV2;
 		const basic = (await upgrades.upgradeProxy(appWorks.address, AppWorksV3)) as AppWorksV3;
 
 		return { DEFAULT_MINT_PRICE, basic, owner, otherAccount, allAccounts };
