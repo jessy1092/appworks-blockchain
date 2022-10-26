@@ -1,7 +1,6 @@
 import { loadFixture } from '@nomicfoundation/hardhat-network-helpers';
 import { expect } from 'chai';
 import { ethers } from 'hardhat';
-import BigNumber from 'bignumber.js';
 
 import { CErc20Delegate } from '../test-types/compound-protocol/contracts/CErc20Delegate';
 import { CErc20Delegator } from '../test-types/compound-protocol/contracts/CErc20Delegator';
@@ -10,6 +9,8 @@ import { Unitroller } from '../test-types/compound-protocol/contracts/Unitroller
 import { SimplePriceOracle } from '../test-types/compound-protocol/contracts/SimplePriceOracle';
 import { ZeroInterestRateModel } from '../test-types/contracts/Compound.sol/ZeroInterestRateModel';
 import { TestToken } from '../test-types/contracts/Compound.sol/TestToken';
+
+const DECIMAL = 10n ** 18n;
 
 describe('Compound', function () {
 	// We define a fixture to reuse the same setup in every test.
@@ -24,10 +25,7 @@ describe('Compound', function () {
 		return { owner, otherAccount, testToken };
 	}
 
-	async function deployCompoundFixture() {
-		// Contracts are deployed using the first signer/account by default
-		const { owner, otherAccount, testToken } = await deployERC20Fixture();
-
+	async function deployControllerFixture() {
 		// Setup Comptroller
 		const ComptrollerContract = await ethers.getContractFactory('Comptroller');
 		const comptrollerContract = (await ComptrollerContract.deploy()) as Comptroller;
@@ -43,6 +41,16 @@ describe('Compound', function () {
 		const unitrollerProxy = (await comptrollerContract.attach(
 			unitrollerContract.address,
 		)) as Comptroller;
+
+		return { unitrollerProxy };
+	}
+
+	async function deployCompoundFixture() {
+		// Contracts are deployed using the first signer/account by default
+		const { owner, otherAccount, testToken } = await deployERC20Fixture();
+
+		// Setup Controller
+		const { unitrollerProxy } = await deployControllerFixture();
 
 		// Setup InterestRateModel
 		const ZeroInterestRateModelContract = await ethers.getContractFactory('ZeroInterestRateModel');
@@ -71,9 +79,9 @@ describe('Compound', function () {
 		const CErc20TokenDelegator = await ethers.getContractFactory('CErc20Delegator');
 		const cErc20TokenDelegator = (await CErc20TokenDelegator.deploy(
 			testToken.address,
-			unitrollerContract.address,
+			unitrollerProxy.address,
 			zeroInterestRateModelContract.address,
-			1,
+			1n * DECIMAL,
 			'cTestToken',
 			'cTT',
 			18,
@@ -83,6 +91,8 @@ describe('Compound', function () {
 		)) as CErc20Delegator;
 
 		await unitrollerProxy._setPriceOracle(simplePriceOracleContract.address);
+
+		await unitrollerProxy._supportMarket(cErc20TokenDelegator.address);
 
 		return { owner, otherAccount, testToken, unitrollerProxy, cErc20TokenDelegator };
 	}
@@ -94,11 +104,53 @@ describe('Compound', function () {
 		});
 
 		it('Should have TestToken', async function () {
-			const { owner, testToken } = await loadFixture(deployCompoundFixture);
+			const { owner, testToken } = await loadFixture(deployERC20Fixture);
 			const balance = await testToken.balanceOf(owner.address);
-			expect(new BigNumber(balance.toString()).toString()).to.equal(
-				new BigNumber(100000000).multipliedBy(new BigNumber(10).exponentiatedBy(18)).toString(),
+			expect(balance).to.equal(100000000n * DECIMAL);
+		});
+	});
+
+	describe('mint/redeem', function () {
+		it('Should mint CErc20 Token by TestToken', async function () {
+			const { owner, testToken, cErc20TokenDelegator } = await loadFixture(deployCompoundFixture);
+
+			const MINT_AMOUNT = 100n * DECIMAL;
+
+			await testToken.approve(cErc20TokenDelegator.address, MINT_AMOUNT);
+
+			await cErc20TokenDelegator.mint(MINT_AMOUNT);
+
+			const contractBalance = await testToken.balanceOf(cErc20TokenDelegator.address);
+
+			// owner's cErc20 token balance === MINT_AMOUNT
+			const balance = await cErc20TokenDelegator.balanceOf(owner.address);
+
+			expect(contractBalance).to.equal(MINT_AMOUNT);
+			expect(balance).to.equal(MINT_AMOUNT);
+		});
+
+		it('Should redeem CErc20 Token and get TestToken', async function () {
+			const { owner, testToken, cErc20TokenDelegator } = await loadFixture(deployCompoundFixture);
+
+			const MINT_AMOUNT = 100n * DECIMAL;
+
+			await testToken.approve(cErc20TokenDelegator.address, MINT_AMOUNT);
+
+			await cErc20TokenDelegator.mint(MINT_AMOUNT);
+
+			await cErc20TokenDelegator.approve(owner.address, MINT_AMOUNT);
+
+			// owner's testToken increase, cErc20TokenDelegator's testToken decrease
+			await expect(cErc20TokenDelegator.redeem(MINT_AMOUNT)).to.changeTokenBalances(
+				testToken,
+				[owner, cErc20TokenDelegator],
+				[MINT_AMOUNT, -MINT_AMOUNT],
 			);
+
+			// owner's cErc20 token should be 0
+			const balance = await cErc20TokenDelegator.balanceOf(owner.address);
+
+			expect(balance).to.equal(0);
 		});
 	});
 });
