@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.16;
 
-// Import CErc20
+// Import CErc20 and Comptroller
 import 'compound-protocol/contracts/CErc20Delegator.sol';
 import 'compound-protocol/contracts/CErc20Delegate.sol';
 import 'compound-protocol/contracts/Comptroller.sol';

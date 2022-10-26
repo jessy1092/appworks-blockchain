@@ -9,6 +9,8 @@ import { CErc20Delegator } from '../test-types/compound-protocol/contracts/CErc2
 import { Comptroller } from '../test-types/compound-protocol/contracts/Comptroller';
 import { Unitroller } from '../test-types/compound-protocol/contracts/Unitroller';
 import { SimplePriceOracle } from '../test-types/compound-protocol/contracts/SimplePriceOracle';
+import { TokenErrorReporter } from '../test-types/compound-protocol/contracts/ErrorReporter.sol/TokenErrorReporter';
+
 import { ZeroInterestRateModel } from '../test-types/contracts/Compound.sol/ZeroInterestRateModel';
 import { TestToken } from '../test-types/contracts/Compound.sol/TestToken';
 
@@ -70,7 +72,8 @@ describe('Compound', function () {
 			'0x00',
 		)) as CErc20Delegator;
 
-		return { testToken, cErc20Token };
+		// cErc20TokenDelegate for check error
+		return { testToken, cErc20Token, cErc20TokenDelegate };
 	}
 
 	async function deployControllerFixture() {
@@ -113,7 +116,7 @@ describe('Compound', function () {
 
 		// Setup CErc20Delegate and Erc20 TestToken
 		// Setup TestTokenA Market
-		const { testToken, cErc20Token } = await deployCErc20(
+		const { testToken, cErc20Token, cErc20TokenDelegate } = await deployCErc20(
 			'TestTokenA',
 			'TTA',
 			unitrollerProxy,
@@ -128,6 +131,7 @@ describe('Compound', function () {
 			otherAccount,
 			testTokenA: testToken,
 			cErc20TokenA: cErc20Token,
+			cErc20TokenADelegate: cErc20TokenDelegate,
 			unitrollerProxy,
 			priceOracle,
 			interestRateModel,
@@ -140,7 +144,7 @@ describe('Compound', function () {
 		const { unitrollerProxy, interestRateModel, owner } = compound;
 
 		// Setup TestTokenB Market
-		const { testToken, cErc20Token } = await deployCErc20(
+		const { testToken, cErc20Token, cErc20TokenDelegate } = await deployCErc20(
 			'TestTokenB',
 			'TTB',
 			unitrollerProxy,
@@ -150,7 +154,12 @@ describe('Compound', function () {
 
 		await unitrollerProxy._supportMarket(cErc20Token.address);
 
-		return { ...compound, testTokenB: testToken, cErc20TokenB: cErc20Token };
+		return {
+			...compound,
+			testTokenB: testToken,
+			cErc20TokenB: cErc20Token,
+			cErc20TokenBDelegate: cErc20TokenDelegate,
+		};
 	}
 
 	describe('Deployment', function () {
@@ -254,13 +263,11 @@ describe('Compound', function () {
 
 			// User Setup deposit: testTokenA 100
 			const TESTTOKENA_DEPOSIT_AMOUNT = 100n * DECIMAL;
-
 			await testTokenA.approve(cErc20TokenA.address, TESTTOKENA_DEPOSIT_AMOUNT);
 			await cErc20TokenA.mint(TESTTOKENA_DEPOSIT_AMOUNT);
 
 			// Mint 1 cErc20TokenB by 1 testTokenB
 			const TESTTOKENB_DEPOSIT_AMOUNT = 1n * DECIMAL;
-
 			await testTokenB.approve(cErc20TokenB.address, TESTTOKENB_DEPOSIT_AMOUNT);
 			await cErc20TokenB.mint(TESTTOKENB_DEPOSIT_AMOUNT);
 
@@ -291,6 +298,150 @@ describe('Compound', function () {
 
 			// owner's testTokenA balance === Original - deposit + borrow
 			expect(balance).to.equal((100000000n - 100n + 50n) * DECIMAL);
+		});
+
+		it('Could repay patial TestTokenA after borrow', async function () {
+			const { owner, testTokenA, cErc20TokenA, testTokenB, cErc20TokenB, unitrollerProxy } =
+				await loadFixture(setupBorrowRepayFixture);
+
+			// User Setup asset enter market as collateral (by user)
+			await unitrollerProxy.enterMarkets([cErc20TokenA.address, cErc20TokenB.address]);
+
+			// User Setup deposit: testTokenA 100
+			const TESTTOKENA_DEPOSIT_AMOUNT = 100n * DECIMAL;
+			await testTokenA.approve(cErc20TokenA.address, TESTTOKENA_DEPOSIT_AMOUNT);
+			await cErc20TokenA.mint(TESTTOKENA_DEPOSIT_AMOUNT);
+
+			// Mint 1 cErc20TokenB by 1 testTokenB
+			const TESTTOKENB_DEPOSIT_AMOUNT = 1n * DECIMAL;
+			await testTokenB.approve(cErc20TokenB.address, TESTTOKENB_DEPOSIT_AMOUNT);
+			await cErc20TokenB.mint(TESTTOKENB_DEPOSIT_AMOUNT);
+
+			const TESTTOKENA_BORROW_AMOUNT = 50n * DECIMAL;
+			await cErc20TokenA.borrow(TESTTOKENA_BORROW_AMOUNT);
+
+			const TESTTOKENA_REPAY_BORROW_AMOUNT = 25n * DECIMAL;
+
+			await testTokenA.approve(cErc20TokenA.address, TESTTOKENA_REPAY_BORROW_AMOUNT);
+
+			// owner's testTokenA decrease, cErc20TokenA's testTokenA increase
+			await expect(cErc20TokenA.repayBorrow(TESTTOKENA_REPAY_BORROW_AMOUNT)).to.changeTokenBalances(
+				testTokenA,
+				[owner, cErc20TokenA],
+				[-TESTTOKENA_REPAY_BORROW_AMOUNT, TESTTOKENA_REPAY_BORROW_AMOUNT],
+			);
+
+			const balance = await testTokenA.balanceOf(owner.address);
+
+			// owner's testTokenA balance === Original - deposit + borrow - repay
+			expect(balance).to.equal((100000000n - 100n + 50n - 25n) * DECIMAL);
+		});
+
+		it('Should not withdraw all TestTokenB if has debt', async function () {
+			const {
+				owner,
+				testTokenA,
+				cErc20TokenA,
+				testTokenB,
+				cErc20TokenB,
+				cErc20TokenBDelegate,
+				unitrollerProxy,
+			} = await loadFixture(setupBorrowRepayFixture);
+
+			// User Setup asset enter market as collateral (by user)
+			await unitrollerProxy.enterMarkets([cErc20TokenA.address, cErc20TokenB.address]);
+
+			// User Setup deposit: testTokenA 100
+			const TESTTOKENA_DEPOSIT_AMOUNT = 100n * DECIMAL;
+
+			await testTokenA.approve(cErc20TokenA.address, TESTTOKENA_DEPOSIT_AMOUNT);
+			await cErc20TokenA.mint(TESTTOKENA_DEPOSIT_AMOUNT);
+
+			// Mint 1 cErc20TokenB by 1 testTokenB
+			const TESTTOKENB_DEPOSIT_AMOUNT = 1n * DECIMAL;
+
+			await testTokenB.approve(cErc20TokenB.address, TESTTOKENB_DEPOSIT_AMOUNT);
+			await cErc20TokenB.mint(TESTTOKENB_DEPOSIT_AMOUNT);
+
+			const TESTTOKENA_BORROW_AMOUNT = 50n * DECIMAL;
+			await cErc20TokenA.borrow(TESTTOKENA_BORROW_AMOUNT);
+
+			await cErc20TokenB.approve(owner.address, TESTTOKENB_DEPOSIT_AMOUNT);
+
+			await expect(cErc20TokenB.redeem(TESTTOKENB_DEPOSIT_AMOUNT)).to.be.revertedWithCustomError(
+				cErc20TokenBDelegate,
+				'RedeemComptrollerRejection',
+			);
+		});
+
+		it('Could repay all TestTokenA after borrow', async function () {
+			const { owner, testTokenA, cErc20TokenA, testTokenB, cErc20TokenB, unitrollerProxy } =
+				await loadFixture(setupBorrowRepayFixture);
+
+			// User Setup asset enter market as collateral (by user)
+			await unitrollerProxy.enterMarkets([cErc20TokenA.address, cErc20TokenB.address]);
+
+			// User Setup deposit: testTokenA 100
+			const TESTTOKENA_DEPOSIT_AMOUNT = 100n * DECIMAL;
+			await testTokenA.approve(cErc20TokenA.address, TESTTOKENA_DEPOSIT_AMOUNT);
+			await cErc20TokenA.mint(TESTTOKENA_DEPOSIT_AMOUNT);
+
+			// Mint 1 cErc20TokenB by 1 testTokenB
+			const TESTTOKENB_DEPOSIT_AMOUNT = 1n * DECIMAL;
+			await testTokenB.approve(cErc20TokenB.address, TESTTOKENB_DEPOSIT_AMOUNT);
+			await cErc20TokenB.mint(TESTTOKENB_DEPOSIT_AMOUNT);
+
+			const TESTTOKENA_BORROW_AMOUNT = 50n * DECIMAL;
+			await cErc20TokenA.borrow(TESTTOKENA_BORROW_AMOUNT);
+
+			await testTokenA.approve(cErc20TokenA.address, TESTTOKENA_BORROW_AMOUNT);
+
+			// owner's testTokenA decrease, cErc20TokenA's testTokenA increase
+			await expect(cErc20TokenA.repayBorrow(TESTTOKENA_BORROW_AMOUNT)).to.changeTokenBalances(
+				testTokenA,
+				[owner, cErc20TokenA],
+				[-TESTTOKENA_BORROW_AMOUNT, TESTTOKENA_BORROW_AMOUNT],
+			);
+
+			const balance = await testTokenA.balanceOf(owner.address);
+
+			// owner's testTokenA balance === Original - deposit
+			expect(balance).to.equal((100000000n - 100n) * DECIMAL);
+		});
+
+		it('Chould withdraw all TestTokenB if has no debt', async function () {
+			const { owner, testTokenA, cErc20TokenA, testTokenB, cErc20TokenB, unitrollerProxy } =
+				await loadFixture(setupBorrowRepayFixture);
+
+			// User Setup asset enter market as collateral (by user)
+			await unitrollerProxy.enterMarkets([cErc20TokenA.address, cErc20TokenB.address]);
+
+			// User Setup deposit: testTokenA 100
+			const TESTTOKENA_DEPOSIT_AMOUNT = 100n * DECIMAL;
+			await testTokenA.approve(cErc20TokenA.address, TESTTOKENA_DEPOSIT_AMOUNT);
+			await cErc20TokenA.mint(TESTTOKENA_DEPOSIT_AMOUNT);
+
+			// Mint 1 cErc20TokenB by 1 testTokenB
+			const TESTTOKENB_DEPOSIT_AMOUNT = 1n * DECIMAL;
+			await testTokenB.approve(cErc20TokenB.address, TESTTOKENB_DEPOSIT_AMOUNT);
+			await cErc20TokenB.mint(TESTTOKENB_DEPOSIT_AMOUNT);
+
+			const TESTTOKENA_BORROW_AMOUNT = 50n * DECIMAL;
+			await cErc20TokenA.borrow(TESTTOKENA_BORROW_AMOUNT);
+
+			await testTokenA.approve(cErc20TokenA.address, TESTTOKENA_BORROW_AMOUNT);
+
+			// owner's testTokenA decrease, cErc20TokenA's testTokenA increase
+			await cErc20TokenA.repayBorrow(TESTTOKENA_BORROW_AMOUNT);
+
+			await cErc20TokenB.approve(owner.address, TESTTOKENB_DEPOSIT_AMOUNT);
+
+			// owner's testTokenA decrease, cErc20TokenA's testTokenA increase
+			await expect(cErc20TokenB.redeem(TESTTOKENB_DEPOSIT_AMOUNT)).to.changeTokenBalances(
+				testTokenB,
+				[owner, cErc20TokenB],
+				[TESTTOKENB_DEPOSIT_AMOUNT, -TESTTOKENB_DEPOSIT_AMOUNT],
+			);
 		});
 	});
 });
