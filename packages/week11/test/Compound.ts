@@ -2,6 +2,7 @@ import { loadFixture } from '@nomicfoundation/hardhat-network-helpers';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { expect } from 'chai';
 import { ethers } from 'hardhat';
+import Bignumber from 'bignumber.js';
 
 import { CErc20Delegate } from '../test-types/compound-protocol/contracts/CErc20Delegate';
 import { CErc20Delegator } from '../test-types/compound-protocol/contracts/CErc20Delegator';
@@ -133,6 +134,25 @@ describe('Compound', function () {
 		};
 	}
 
+	async function deployCompoundWithMultiMarketFixture() {
+		const compound = await deployCompoundFixture();
+
+		const { unitrollerProxy, interestRateModel, owner } = compound;
+
+		// Setup TestTokenB Market
+		const { testToken, cErc20Token } = await deployCErc20(
+			'TestTokenB',
+			'TTB',
+			unitrollerProxy,
+			interestRateModel,
+			owner,
+		);
+
+		await unitrollerProxy._supportMarket(cErc20Token.address);
+
+		return { ...compound, testTokenB: testToken, cErc20TokenB: cErc20Token };
+	}
+
 	describe('Deployment', function () {
 		it('Should set the right admin', async function () {
 			const { owner, unitrollerProxy } = await loadFixture(deployCompoundFixture);
@@ -187,6 +207,83 @@ describe('Compound', function () {
 			const balance = await cErc20TokenA.balanceOf(owner.address);
 
 			expect(balance).to.equal(0);
+		});
+	});
+
+	describe('borrow/repay', function () {
+		it('Should borrow TestTokenA when TestTokenB as collateral', async function () {
+			const {
+				owner,
+				testTokenA,
+				cErc20TokenA,
+				testTokenB,
+				cErc20TokenB,
+				priceOracle,
+				unitrollerProxy,
+			} = await loadFixture(deployCompoundWithMultiMarketFixture);
+
+			const TESTTOKENA_PRICE = 1n * DECIMAL;
+			const TESTTOKENB_PRICE = 100n * DECIMAL;
+			const COLLATERAL_FACTOR = new Bignumber(0.5).multipliedBy(DECIMAL.toString()).toString();
+
+			// Controller Setup Price: testTokenA = $1, testTokenB = $100
+			await priceOracle.setUnderlyingPrice(cErc20TokenA.address, TESTTOKENA_PRICE);
+			await priceOracle.setUnderlyingPrice(cErc20TokenB.address, TESTTOKENB_PRICE);
+
+			// Controller Setup Collateral factor: testTokenB 50% = 0.5
+			await unitrollerProxy._setCollateralFactor(cErc20TokenB.address, COLLATERAL_FACTOR);
+
+			const market = await unitrollerProxy.markets(cErc20TokenB.address);
+
+			// Check correct setup
+			expect(market.collateralFactorMantissa).to.equal(COLLATERAL_FACTOR);
+
+			// User Setup asset enter market as collateral (by user)
+			await unitrollerProxy.enterMarkets([cErc20TokenA.address, cErc20TokenB.address]);
+
+			const assets = await unitrollerProxy.getAssetsIn(owner.address);
+
+			expect(assets).to.eqls([cErc20TokenA.address, cErc20TokenB.address]);
+
+			// User Setup deposit: testTokenA 100
+			const TESTTOKENA_DEPOSIT_AMOUNT = 100n * DECIMAL;
+
+			await testTokenA.approve(cErc20TokenA.address, TESTTOKENA_DEPOSIT_AMOUNT);
+			await cErc20TokenA.mint(TESTTOKENA_DEPOSIT_AMOUNT);
+
+			// Mint 1 cErc20TokenB by 1 testTokenB
+			const TESTTOKENB_DEPOSIT_AMOUNT = 1n * DECIMAL;
+
+			await testTokenB.approve(cErc20TokenB.address, TESTTOKENB_DEPOSIT_AMOUNT);
+			await cErc20TokenB.mint(TESTTOKENB_DEPOSIT_AMOUNT);
+
+			const TESTTOKENA_BORROW_AMOUNT = 50n * DECIMAL;
+
+			// Check liquidity
+			// const liquidity = await unitrollerProxy.getAccountLiquidity(owner.address);
+
+			// console.log(JSON.stringify(liquidity));
+
+			// const result = await unitrollerProxy.getHypotheticalAccountLiquidity(
+			// 	owner.address,
+			// 	cErc20TokenA.address,
+			// 	0,
+			// 	TESTTOKENA_BORROW_AMOUNT,
+			// );
+
+			// console.log(JSON.stringify(result));
+
+			// owner's testTokenA increase, cErc20TokenA's testTokenA decrease
+			await expect(cErc20TokenA.borrow(TESTTOKENA_BORROW_AMOUNT)).to.changeTokenBalances(
+				testTokenA,
+				[owner, cErc20TokenA],
+				[TESTTOKENA_BORROW_AMOUNT, -TESTTOKENA_BORROW_AMOUNT],
+			);
+
+			const balance = await testTokenA.balanceOf(owner.address);
+
+			// owner's testTokenA balance === Original - deposit + borrow
+			expect(balance).to.equal((100000000n - 100n + 50n) * DECIMAL);
 		});
 	});
 });
