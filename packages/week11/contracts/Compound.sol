@@ -14,7 +14,7 @@ import '@openzeppelin/contracts/token/ERC20/ERC20.sol';
 
 // Make TestToken inherit from the ERC20 contract
 contract TestToken is ERC20 {
-	constructor() ERC20('TestToken', 'TT') {
+	constructor(string memory name_, string memory symbol_) ERC20(name_, symbol_) {
 		uint256 n = 100000000;
 		_mint(msg.sender, n * 10**uint256(decimals()));
 	}

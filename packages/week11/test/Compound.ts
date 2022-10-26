@@ -1,4 +1,5 @@
 import { loadFixture } from '@nomicfoundation/hardhat-network-helpers';
+import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { expect } from 'chai';
 import { ethers } from 'hardhat';
 
@@ -13,16 +14,62 @@ import { TestToken } from '../test-types/contracts/Compound.sol/TestToken';
 const DECIMAL = 10n ** 18n;
 
 describe('Compound', function () {
+	async function deployERC20(name: string, symbol: string): Promise<TestToken> {
+		const TestToken = await ethers.getContractFactory('TestToken');
+		const testToken = (await TestToken.deploy(name, symbol)) as TestToken;
+
+		return testToken;
+	}
+
 	// We define a fixture to reuse the same setup in every test.
 	// We use loadFixture to run this setup once, snapshot that state,
 	// and reset Hardhat Network to that snapshot in every test.
 	async function deployERC20Fixture() {
 		const [owner, ...otherAccount] = await ethers.getSigners();
 
-		const TestToken = await ethers.getContractFactory('TestToken');
-		const testToken = (await TestToken.deploy()) as TestToken;
+		const testToken = await deployERC20('TestToken', 'TT');
 
 		return { owner, otherAccount, testToken };
+	}
+
+	async function deployCErc20(
+		name: string,
+		symbol: string,
+		comptroller: Comptroller,
+		interestRateModel: ZeroInterestRateModel,
+		owner: SignerWithAddress,
+	) {
+		const testToken = await deployERC20(name, symbol);
+		// Setup CErc20Delegate implementation
+		const CErc20TokenDelegate = await ethers.getContractFactory('CErc20Delegate');
+		const cErc20TokenDelegate = (await CErc20TokenDelegate.deploy()) as CErc20Delegate;
+
+		// Setup CErc20TokenDelegator storage proxy
+		// address underlying_,
+		// ComptrollerInterface comptroller_,
+		// InterestRateModel interestRateModel_,
+		// uint initialExchangeRateMantissa_,
+		// string memory name_,
+		// string memory symbol_,
+		// uint8 decimals_,
+		// address payable admin_,
+		// address implementation_,
+		// bytes memory becomeImplementationData
+		const CErc20TokenDelegator = await ethers.getContractFactory('CErc20Delegator');
+		const cErc20Token = (await CErc20TokenDelegator.deploy(
+			testToken.address,
+			comptroller.address,
+			interestRateModel.address,
+			1n * DECIMAL,
+			`c${name}`,
+			`c${symbol}`,
+			18,
+			owner.address,
+			cErc20TokenDelegate.address,
+			'0x00',
+		)) as CErc20Delegator;
+
+		return { testToken, cErc20Token };
 	}
 
 	async function deployControllerFixture() {
@@ -42,59 +89,48 @@ describe('Compound', function () {
 			unitrollerContract.address,
 		)) as Comptroller;
 
-		return { unitrollerProxy };
+		// Setup Oracle
+		const SimplePriceOracleContract = await ethers.getContractFactory('SimplePriceOracle');
+		const priceOracle = (await SimplePriceOracleContract.deploy()) as SimplePriceOracle;
+
+		await unitrollerProxy._setPriceOracle(priceOracle.address);
+
+		return { unitrollerProxy, priceOracle };
 	}
 
 	async function deployCompoundFixture() {
 		// Contracts are deployed using the first signer/account by default
-		const { owner, otherAccount, testToken } = await deployERC20Fixture();
+		const [owner, ...otherAccount] = await ethers.getSigners();
 
 		// Setup Controller
-		const { unitrollerProxy } = await deployControllerFixture();
+		const { unitrollerProxy, priceOracle } = await deployControllerFixture();
 
 		// Setup InterestRateModel
 		const ZeroInterestRateModelContract = await ethers.getContractFactory('ZeroInterestRateModel');
-		const zeroInterestRateModelContract =
+		const interestRateModel =
 			(await ZeroInterestRateModelContract.deploy()) as ZeroInterestRateModel;
 
-		// Setup Oracle
-		const SimplePriceOracleContract = await ethers.getContractFactory('SimplePriceOracle');
-		const simplePriceOracleContract =
-			(await SimplePriceOracleContract.deploy()) as SimplePriceOracle;
+		// Setup CErc20Delegate and Erc20 TestToken
+		// Setup TestTokenA Market
+		const { testToken, cErc20Token } = await deployCErc20(
+			'TestTokenA',
+			'TTA',
+			unitrollerProxy,
+			interestRateModel,
+			owner,
+		);
 
-		// Setup CErc20Delegate
-		const CErc20TokenDelegate = await ethers.getContractFactory('CErc20Delegate');
-		const cErc20TokenDelegate = (await CErc20TokenDelegate.deploy()) as CErc20Delegate;
+		await unitrollerProxy._supportMarket(cErc20Token.address);
 
-		// address underlying_,
-		// ComptrollerInterface comptroller_,
-		// InterestRateModel interestRateModel_,
-		// uint initialExchangeRateMantissa_,
-		// string memory name_,
-		// string memory symbol_,
-		// uint8 decimals_,
-		// address payable admin_,
-		// address implementation_,
-		// bytes memory becomeImplementationData
-		const CErc20TokenDelegator = await ethers.getContractFactory('CErc20Delegator');
-		const cErc20TokenDelegator = (await CErc20TokenDelegator.deploy(
-			testToken.address,
-			unitrollerProxy.address,
-			zeroInterestRateModelContract.address,
-			1n * DECIMAL,
-			'cTestToken',
-			'cTT',
-			18,
-			owner.address,
-			cErc20TokenDelegate.address,
-			'0x00',
-		)) as CErc20Delegator;
-
-		await unitrollerProxy._setPriceOracle(simplePriceOracleContract.address);
-
-		await unitrollerProxy._supportMarket(cErc20TokenDelegator.address);
-
-		return { owner, otherAccount, testToken, unitrollerProxy, cErc20TokenDelegator };
+		return {
+			owner,
+			otherAccount,
+			testTokenA: testToken,
+			cErc20TokenA: cErc20Token,
+			unitrollerProxy,
+			priceOracle,
+			interestRateModel,
+		};
 	}
 
 	describe('Deployment', function () {
@@ -112,43 +148,43 @@ describe('Compound', function () {
 
 	describe('mint/redeem', function () {
 		it('Should mint CErc20 Token by TestToken', async function () {
-			const { owner, testToken, cErc20TokenDelegator } = await loadFixture(deployCompoundFixture);
+			const { owner, testTokenA, cErc20TokenA } = await loadFixture(deployCompoundFixture);
 
 			const MINT_AMOUNT = 100n * DECIMAL;
 
-			await testToken.approve(cErc20TokenDelegator.address, MINT_AMOUNT);
+			await testTokenA.approve(cErc20TokenA.address, MINT_AMOUNT);
 
-			await cErc20TokenDelegator.mint(MINT_AMOUNT);
+			await cErc20TokenA.mint(MINT_AMOUNT);
 
-			const contractBalance = await testToken.balanceOf(cErc20TokenDelegator.address);
+			const contractBalance = await testTokenA.balanceOf(cErc20TokenA.address);
 
 			// owner's cErc20 token balance === MINT_AMOUNT
-			const balance = await cErc20TokenDelegator.balanceOf(owner.address);
+			const balance = await cErc20TokenA.balanceOf(owner.address);
 
 			expect(contractBalance).to.equal(MINT_AMOUNT);
 			expect(balance).to.equal(MINT_AMOUNT);
 		});
 
 		it('Should redeem CErc20 Token and get TestToken', async function () {
-			const { owner, testToken, cErc20TokenDelegator } = await loadFixture(deployCompoundFixture);
+			const { owner, testTokenA, cErc20TokenA } = await loadFixture(deployCompoundFixture);
 
 			const MINT_AMOUNT = 100n * DECIMAL;
 
-			await testToken.approve(cErc20TokenDelegator.address, MINT_AMOUNT);
+			await testTokenA.approve(cErc20TokenA.address, MINT_AMOUNT);
 
-			await cErc20TokenDelegator.mint(MINT_AMOUNT);
+			await cErc20TokenA.mint(MINT_AMOUNT);
 
-			await cErc20TokenDelegator.approve(owner.address, MINT_AMOUNT);
+			await cErc20TokenA.approve(owner.address, MINT_AMOUNT);
 
-			// owner's testToken increase, cErc20TokenDelegator's testToken decrease
-			await expect(cErc20TokenDelegator.redeem(MINT_AMOUNT)).to.changeTokenBalances(
-				testToken,
-				[owner, cErc20TokenDelegator],
+			// owner's testTokenA increase, cErc20TokenA's testTokenA decrease
+			await expect(cErc20TokenA.redeem(MINT_AMOUNT)).to.changeTokenBalances(
+				testTokenA,
+				[owner, cErc20TokenA],
 				[MINT_AMOUNT, -MINT_AMOUNT],
 			);
 
 			// owner's cErc20 token should be 0
-			const balance = await cErc20TokenDelegator.balanceOf(owner.address);
+			const balance = await cErc20TokenA.balanceOf(owner.address);
 
 			expect(balance).to.equal(0);
 		});
