@@ -211,16 +211,10 @@ describe('Compound', function () {
 	});
 
 	describe('borrow/repay', function () {
-		it('Should borrow TestTokenA when TestTokenB as collateral', async function () {
-			const {
-				owner,
-				testTokenA,
-				cErc20TokenA,
-				testTokenB,
-				cErc20TokenB,
-				priceOracle,
-				unitrollerProxy,
-			} = await loadFixture(deployCompoundWithMultiMarketFixture);
+		async function setupBorrowRepayFixture() {
+			const compound = await deployCompoundWithMultiMarketFixture();
+
+			const { priceOracle, cErc20TokenA, cErc20TokenB, unitrollerProxy } = compound;
 
 			const TESTTOKENA_PRICE = 1n * DECIMAL;
 			const TESTTOKENB_PRICE = 100n * DECIMAL;
@@ -233,16 +227,29 @@ describe('Compound', function () {
 			// Controller Setup Collateral factor: testTokenB 50% = 0.5
 			await unitrollerProxy._setCollateralFactor(cErc20TokenB.address, COLLATERAL_FACTOR);
 
+			return { ...compound, COLLATERAL_FACTOR };
+		}
+
+		it('Should setup TestTokenB collateral factor', async function () {
+			const { cErc20TokenB, unitrollerProxy, COLLATERAL_FACTOR } = await loadFixture(
+				setupBorrowRepayFixture,
+			);
+
 			const market = await unitrollerProxy.markets(cErc20TokenB.address);
 
-			// Check correct setup
 			expect(market.collateralFactorMantissa).to.equal(COLLATERAL_FACTOR);
+		});
+
+		it('Should borrow TestTokenA when TestTokenB as collateral', async function () {
+			const { owner, testTokenA, cErc20TokenA, testTokenB, cErc20TokenB, unitrollerProxy } =
+				await loadFixture(setupBorrowRepayFixture);
 
 			// User Setup asset enter market as collateral (by user)
 			await unitrollerProxy.enterMarkets([cErc20TokenA.address, cErc20TokenB.address]);
 
 			const assets = await unitrollerProxy.getAssetsIn(owner.address);
 
+			// check asset can be as collateral
 			expect(assets).to.eqls([cErc20TokenA.address, cErc20TokenB.address]);
 
 			// User Setup deposit: testTokenA 100
