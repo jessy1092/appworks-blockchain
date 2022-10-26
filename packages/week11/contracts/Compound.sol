@@ -10,6 +10,21 @@ import 'compound-protocol/contracts/Unitroller.sol';
 import 'compound-protocol/contracts/InterestRateModel.sol';
 import 'compound-protocol/contracts/SimplePriceOracle.sol';
 
+import '@openzeppelin/contracts/token/ERC20/ERC20.sol';
+
+// Make TestToken inherit from the ERC20 contract
+contract TestToken is ERC20 {
+	constructor() ERC20('TestToken', 'TT') {
+		uint256 n = 100000000;
+		_mint(msg.sender, n * 10**uint256(decimals()));
+	}
+
+	function mint(address account) public virtual {
+		uint256 n = 10000;
+		_mint(account, n * 10**uint256(decimals()));
+	}
+}
+
 contract ZeroInterestRateModel is InterestRateModel {
 	function getBorrowRate(
 		uint256,

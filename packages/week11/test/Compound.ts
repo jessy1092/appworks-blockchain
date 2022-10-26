@@ -3,13 +3,13 @@ import { expect } from 'chai';
 import { ethers } from 'hardhat';
 import BigNumber from 'bignumber.js';
 
-import { ERC20 } from '../test-types/@openzeppelin/contracts/token/ERC20/ERC20';
 import { CErc20Delegate } from '../test-types/compound-protocol/contracts/CErc20Delegate';
 import { CErc20Delegator } from '../test-types/compound-protocol/contracts/CErc20Delegator';
 import { Comptroller } from '../test-types/compound-protocol/contracts/Comptroller';
 import { Unitroller } from '../test-types/compound-protocol/contracts/Unitroller';
 import { SimplePriceOracle } from '../test-types/compound-protocol/contracts/SimplePriceOracle';
 import { ZeroInterestRateModel } from '../test-types/contracts/Compound.sol/ZeroInterestRateModel';
+import { TestToken } from '../test-types/contracts/Compound.sol/TestToken';
 
 describe('Compound', function () {
 	// We define a fixture to reuse the same setup in every test.
@@ -18,8 +18,8 @@ describe('Compound', function () {
 	async function deployERC20Fixture() {
 		const [owner, ...otherAccount] = await ethers.getSigners();
 
-		const TestToken = await ethers.getContractFactory('ERC20');
-		const testToken = (await TestToken.deploy('TestToken', 'TT')) as ERC20;
+		const TestToken = await ethers.getContractFactory('TestToken');
+		const testToken = (await TestToken.deploy()) as TestToken;
 
 		return { owner, otherAccount, testToken };
 	}
@@ -91,6 +91,14 @@ describe('Compound', function () {
 		it('Should set the right admin', async function () {
 			const { owner, unitrollerProxy } = await loadFixture(deployCompoundFixture);
 			expect(await unitrollerProxy.admin()).to.equal(owner.address);
+		});
+
+		it('Should have TestToken', async function () {
+			const { owner, testToken } = await loadFixture(deployCompoundFixture);
+			const balance = await testToken.balanceOf(owner.address);
+			expect(new BigNumber(balance.toString()).toString()).to.equal(
+				new BigNumber(100000000).multipliedBy(new BigNumber(10).exponentiatedBy(18)).toString(),
+			);
 		});
 	});
 });
