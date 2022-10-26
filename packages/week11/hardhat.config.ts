@@ -5,7 +5,15 @@ import * as dotenv from 'dotenv';
 dotenv.config({ path: '../../.env' });
 
 const config: HardhatUserConfig = {
-	solidity: '0.8.16',
+	solidity: {
+		version: '0.8.16',
+		settings: {
+			optimizer: {
+				enabled: true,
+				runs: 1000,
+			},
+		},
+	},
 	networks: {
 		goerli: {
 			url: `https://eth-goerli.g.alchemy.com/v2/${process.env.ALCHEMY_API_KEY}`,
@@ -15,6 +23,7 @@ const config: HardhatUserConfig = {
 			forking: {
 				url: `https://eth-mainnet.g.alchemy.com/v2/${process.env.ALCHEMY_FORK_API_KEY}`,
 				blockNumber: 14390000,
+				enabled: process.env.HARDHAT_FORK_TEST ? true : false,
 			},
 		},
 	},
