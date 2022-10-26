@@ -14,7 +14,17 @@ PS. 想從零開始建置 hardhat ，可以參考 [Week3](../week3/README.md)
 
 如想環境獨立使用環境變數，可以更改 `dotenv.config({ path: '../../.env' });` 指定想要的環境變數檔案位置
 
-## 開發
+## 作業 demo 指令
+
+https://github.com/AppWorks-School/Blockchain-Resource/blob/main/section3/lending.md
+
+1. 作業驗證指令
+
+```
+yarn test:compound
+```
+
+## 一般開發
 
 1. Build (會產生 web3 跟 hardhat test 用的 type definition)
 
