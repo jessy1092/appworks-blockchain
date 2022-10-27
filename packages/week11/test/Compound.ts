@@ -9,16 +9,18 @@ import { CErc20Delegator } from '../test-types/compound-protocol/contracts/CErc2
 import { Comptroller } from '../test-types/compound-protocol/contracts/Comptroller';
 import { Unitroller } from '../test-types/compound-protocol/contracts/Unitroller';
 import { SimplePriceOracle } from '../test-types/compound-protocol/contracts/SimplePriceOracle';
-import { TokenErrorReporter } from '../test-types/compound-protocol/contracts/ErrorReporter.sol/TokenErrorReporter';
 
 import { ZeroInterestRateModel } from '../test-types/contracts/Compound.sol/ZeroInterestRateModel';
 import { TestToken } from '../test-types/contracts/Compound.sol/TestToken';
+
+// Use Compiled data file to specific deploy
+import TestTokenData from '../artifacts/contracts/Compound.sol/TestToken.json';
 
 const DECIMAL = 10n ** 18n;
 
 describe('Compound', function () {
 	async function deployERC20(name: string, symbol: string): Promise<TestToken> {
-		const TestToken = await ethers.getContractFactory('TestToken');
+		const TestToken = await ethers.getContractFactory(TestTokenData.abi, TestTokenData.bytecode);
 		const testToken = (await TestToken.deploy(name, symbol)) as TestToken;
 
 		return testToken;
