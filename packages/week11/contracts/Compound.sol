@@ -3,14 +3,13 @@
 pragma solidity ^0.8.16;
 
 // Import CErc20 and Comptroller
-import 'compound-protocol/contracts/CErc20Delegator.sol';
-import 'compound-protocol/contracts/CErc20Delegate.sol';
-import 'compound-protocol/contracts/Comptroller.sol';
-import 'compound-protocol/contracts/Unitroller.sol';
-import 'compound-protocol/contracts/InterestRateModel.sol';
-import 'compound-protocol/contracts/SimplePriceOracle.sol';
-
-import '@openzeppelin/contracts/token/ERC20/ERC20.sol';
+import { CErc20Delegator } from 'compound-protocol/contracts/CErc20Delegator.sol';
+import { CErc20Delegate } from 'compound-protocol/contracts/CErc20Delegate.sol';
+import { Comptroller } from 'compound-protocol/contracts/Comptroller.sol';
+import { Unitroller } from 'compound-protocol/contracts/Unitroller.sol';
+import { InterestRateModel } from 'compound-protocol/contracts/InterestRateModel.sol';
+import { SimplePriceOracle } from 'compound-protocol/contracts/SimplePriceOracle.sol';
+import { ERC20 } from '@openzeppelin/contracts/token/ERC20/ERC20.sol';
 
 // Make TestToken inherit from the ERC20 contract
 contract TestToken is ERC20 {
