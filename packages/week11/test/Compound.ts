@@ -370,10 +370,9 @@ describe('Compound', function () {
 
 			await cErc20TokenB.approve(owner.address, TESTTOKENB_DEPOSIT_AMOUNT);
 
-			await expect(cErc20TokenB.redeem(TESTTOKENB_DEPOSIT_AMOUNT)).to.be.revertedWithCustomError(
-				cErc20TokenBDelegate,
-				'RedeemComptrollerRejection',
-			);
+			await expect(cErc20TokenB.redeem(TESTTOKENB_DEPOSIT_AMOUNT))
+				.to.be.revertedWithCustomError(cErc20TokenBDelegate, 'RedeemComptrollerRejection')
+				.withArgs(4);
 		});
 
 		it('Could repay all TestTokenA after borrow', async function () {
