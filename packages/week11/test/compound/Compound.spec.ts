@@ -4,17 +4,17 @@ import { expect } from 'chai';
 import { ethers } from 'hardhat';
 import Bignumber from 'bignumber.js';
 
-import { CErc20Delegate } from '../test-types/compound-protocol/contracts/CErc20Delegate';
-import { CErc20Delegator } from '../test-types/compound-protocol/contracts/CErc20Delegator';
-import { Comptroller } from '../test-types/compound-protocol/contracts/Comptroller';
-import { Unitroller } from '../test-types/compound-protocol/contracts/Unitroller';
-import { SimplePriceOracle } from '../test-types/compound-protocol/contracts/SimplePriceOracle';
+import { CErc20Delegate } from '../../test-types/compound-protocol/contracts/CErc20Delegate';
+import { CErc20Delegator } from '../../test-types/compound-protocol/contracts/CErc20Delegator';
+import { Comptroller } from '../../test-types/compound-protocol/contracts/Comptroller';
+import { Unitroller } from '../../test-types/compound-protocol/contracts/Unitroller';
+import { SimplePriceOracle } from '../../test-types/compound-protocol/contracts/SimplePriceOracle';
 
-import { ZeroInterestRateModel } from '../test-types/contracts/Compound.sol/ZeroInterestRateModel';
-import { TestToken } from '../test-types/contracts/Compound.sol/TestToken';
+import { ZeroInterestRateModel } from '../../test-types/contracts/Compound.sol/ZeroInterestRateModel';
+import { TestToken } from '../../test-types/contracts/Compound.sol/TestToken';
 
 // Use Compiled data file to specific deploy
-import TestTokenData from '../artifacts/contracts/Compound.sol/TestToken.json';
+import TestTokenData from '../../artifacts/contracts/Compound.sol/TestToken.json';
 
 const DECIMAL = 10n ** 18n;
 
