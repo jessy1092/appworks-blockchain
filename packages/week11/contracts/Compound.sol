@@ -9,6 +9,18 @@ import { Comptroller } from 'compound-protocol/contracts/Comptroller.sol';
 import { Unitroller } from 'compound-protocol/contracts/Unitroller.sol';
 import { InterestRateModel } from 'compound-protocol/contracts/InterestRateModel.sol';
 import { SimplePriceOracle } from 'compound-protocol/contracts/SimplePriceOracle.sol';
+
+// Import Governor Bravo
+import { GovernorAlpha } from 'compound-protocol/contracts/Governance/GovernorAlpha.sol';
+import {
+	GovernorBravoDelegator
+} from 'compound-protocol/contracts/Governance/GovernorBravoDelegator.sol';
+import {
+	GovernorBravoDelegate
+} from 'compound-protocol/contracts/Governance/GovernorBravoDelegate.sol';
+import { Comp } from 'compound-protocol/contracts/Governance/Comp.sol';
+import { Timelock } from 'compound-protocol/contracts/Timelock.sol';
+
 import { ERC20 } from '@openzeppelin/contracts/token/ERC20/ERC20.sol';
 
 // Make TestToken inherit from the ERC20 contract
