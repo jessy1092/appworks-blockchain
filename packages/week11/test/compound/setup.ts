@@ -1,19 +1,31 @@
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { ethers } from 'hardhat';
+import { time } from '@nomicfoundation/hardhat-network-helpers';
 
 import { CErc20Delegate } from '../../test-types/compound-protocol/contracts/CErc20Delegate';
 import { CErc20Delegator } from '../../test-types/compound-protocol/contracts/CErc20Delegator';
 import { Comptroller } from '../../test-types/compound-protocol/contracts/Comptroller';
 import { Unitroller } from '../../test-types/compound-protocol/contracts/Unitroller';
 import { SimplePriceOracle } from '../../test-types/compound-protocol/contracts/SimplePriceOracle';
-
 import { ZeroInterestRateModel } from '../../test-types/contracts/Compound.sol/ZeroInterestRateModel';
 import { TestToken } from '../../test-types/contracts/Compound.sol/TestToken';
 
+import { Comp } from '../../test-types/compound-protocol/contracts/Governance/Comp';
+import { GovernorBravoDelegator } from '../../test-types/compound-protocol/contracts/Governance/GovernorBravoDelegator';
+import { GovernorBravoDelegate } from '../../test-types/compound-protocol/contracts/Governance/GovernorBravoDelegate';
+import { Timelock } from '../../test-types/compound-protocol/contracts/Timelock';
+import { GovernorAlphaZero } from '../../test-types/contracts/Compound.sol/GovernorAlphaZero';
+
 // Use Compiled data file to specific deploy
 import TestTokenData from '../../artifacts/contracts/Compound.sol/TestToken.json';
+import GovernorAlphaData from '../../artifacts/compound-protocol/contracts/Governance/GovernorAlpha.sol/GovernorAlpha.json';
 
 export const DECIMAL = 10n ** 18n;
+
+const SEC = 1;
+const MIN = 60 * SEC;
+const HOUR = 60 * MIN;
+const DAY = 24 * HOUR;
 
 export const deployERC20 = async (name: string, symbol: string): Promise<TestToken> => {
 	const TestToken = await ethers.getContractFactory(TestTokenData.abi, TestTokenData.bytecode);
@@ -45,7 +57,7 @@ export const deployController = async () => {
 
 	await unitrollerProxy._setPriceOracle(priceOracle.address);
 
-	return { unitrollerProxy, priceOracle };
+	return { unitrollerProxy, priceOracle, unitrollerContract };
 };
 
 export const deployCErc20 = async (
@@ -91,7 +103,7 @@ export const deployCErc20 = async (
 
 export const deployCompound = async (owner: SignerWithAddress) => {
 	// Setup Controller
-	const { unitrollerProxy, priceOracle } = await deployController();
+	const { unitrollerProxy, priceOracle, unitrollerContract } = await deployController();
 
 	// Setup InterestRateModel
 	const ZeroInterestRateModelContract = await ethers.getContractFactory('ZeroInterestRateModel');
@@ -116,5 +128,76 @@ export const deployCompound = async (owner: SignerWithAddress) => {
 		unitrollerProxy,
 		priceOracle,
 		interestRateModel,
+		unitrollerContract,
+	};
+};
+
+export const timelockExecuteTransaction = async (
+	timelock: Timelock,
+	target: string,
+	value: number,
+	signature: string,
+	data: string,
+) => {
+	const blockTimestamps = await time.latest();
+
+	const delay = await timelock.delay();
+	const eta = blockTimestamps + delay.toNumber() + 1;
+
+	await timelock.queueTransaction(target, value, signature, data, eta);
+
+	await time.increaseTo(eta);
+
+	await timelock.executeTransaction(target, value, signature, data, eta);
+};
+
+export const deployComp = async (owner: SignerWithAddress) => {
+	const Comp = await ethers.getContractFactory('Comp');
+	const comp = (await Comp.deploy(owner.address)) as Comp;
+
+	return comp;
+};
+
+export const deployBravo = async (owner: SignerWithAddress) => {
+	const TimelockContract = await ethers.getContractFactory('Timelock');
+	const timelock = (await TimelockContract.deploy(owner.address, 2 * DAY)) as Timelock;
+
+	const comp = await deployComp(owner);
+
+	const GovernorAlphaZeroContract = await ethers.getContractFactory('GovernorAlphaZero');
+	const governorAlphaZero = (await GovernorAlphaZeroContract.deploy()) as GovernorAlphaZero;
+
+	const GovernorBravoDelegateContract = await ethers.getContractFactory('GovernorBravoDelegate');
+	const governorBravoDelegate =
+		(await GovernorBravoDelegateContract.deploy()) as GovernorBravoDelegate;
+
+	// address timelock_,
+	// address comp_,
+	// address admin_,
+	// address implementation_,
+	// uint votingPeriod_,
+	// uint votingDelay_,
+	// uint proposalThreshold_
+	const GovernorBravoDelegatorContract = await ethers.getContractFactory('GovernorBravoDelegator');
+	const governorBravoDelegator = (await GovernorBravoDelegatorContract.deploy(
+		timelock.address,
+		comp.address,
+		owner.address,
+		governorBravoDelegate.address,
+		5760, // block with 24hour
+		1,
+		1000n * DECIMAL,
+	)) as GovernorBravoDelegator;
+
+	// Setup Bravo Proxy let hardhat counld work
+	const governorBravoProxy = (await governorBravoDelegate.attach(
+		governorBravoDelegator.address,
+	)) as GovernorBravoDelegate;
+
+	return {
+		governorAlpha: governorAlphaZero,
+		governorBravoProxy,
+		comp,
+		timelock,
 	};
 };

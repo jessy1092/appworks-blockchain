@@ -18,6 +18,9 @@ import {
 import {
 	GovernorBravoDelegate
 } from 'compound-protocol/contracts/Governance/GovernorBravoDelegate.sol';
+import {
+	GovernorAlpha as IGovernorAlpha
+} from 'compound-protocol/contracts/Governance/GovernorBravoInterfaces.sol';
 import { Comp } from 'compound-protocol/contracts/Governance/Comp.sol';
 import { Timelock } from 'compound-protocol/contracts/Timelock.sol';
 
@@ -52,5 +55,11 @@ contract ZeroInterestRateModel is InterestRateModel {
 		uint256
 	) public pure override returns (uint256) {
 		return 0;
+	}
+}
+
+contract GovernorAlphaZero is IGovernorAlpha {
+	function proposalCount() external pure override returns (uint256) {
+		return 1;
 	}
 }
