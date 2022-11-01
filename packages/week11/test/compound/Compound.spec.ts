@@ -150,12 +150,12 @@ describe('Compound', function () {
 				await loadFixture(setupBorrowRepayFixture);
 
 			// User Setup asset enter market as collateral (by user)
-			await unitrollerProxy.enterMarkets([cErc20TokenA.address, cErc20TokenB.address]);
+			await unitrollerProxy.enterMarkets([cErc20TokenB.address]);
 
 			const assets = await unitrollerProxy.getAssetsIn(owner.address);
 
 			// check asset can be as collateral
-			expect(assets).to.eqls([cErc20TokenA.address, cErc20TokenB.address]);
+			expect(assets).to.eqls([cErc20TokenB.address]);
 
 			// User Setup deposit: testTokenA 100
 			const TESTTOKENA_DEPOSIT_AMOUNT = 100n * DECIMAL;
@@ -201,7 +201,7 @@ describe('Compound', function () {
 				await loadFixture(setupBorrowRepayFixture);
 
 			// User Setup asset enter market as collateral (by user)
-			await unitrollerProxy.enterMarkets([cErc20TokenA.address, cErc20TokenB.address]);
+			await unitrollerProxy.enterMarkets([cErc20TokenB.address]);
 
 			// User Setup deposit: testTokenA 100
 			const TESTTOKENA_DEPOSIT_AMOUNT = 100n * DECIMAL;
@@ -245,7 +245,7 @@ describe('Compound', function () {
 			} = await loadFixture(setupBorrowRepayFixture);
 
 			// User Setup asset enter market as collateral (by user)
-			await unitrollerProxy.enterMarkets([cErc20TokenA.address, cErc20TokenB.address]);
+			await unitrollerProxy.enterMarkets([cErc20TokenB.address]);
 
 			// User Setup deposit: testTokenA 100
 			const TESTTOKENA_DEPOSIT_AMOUNT = 100n * DECIMAL;
@@ -274,7 +274,7 @@ describe('Compound', function () {
 				await loadFixture(setupBorrowRepayFixture);
 
 			// User Setup asset enter market as collateral (by user)
-			await unitrollerProxy.enterMarkets([cErc20TokenA.address, cErc20TokenB.address]);
+			await unitrollerProxy.enterMarkets([cErc20TokenB.address]);
 
 			// User Setup deposit: testTokenA 100
 			const TESTTOKENA_DEPOSIT_AMOUNT = 100n * DECIMAL;
@@ -309,7 +309,7 @@ describe('Compound', function () {
 				await loadFixture(setupBorrowRepayFixture);
 
 			// User Setup asset enter market as collateral (by user)
-			await unitrollerProxy.enterMarkets([cErc20TokenA.address, cErc20TokenB.address]);
+			await unitrollerProxy.enterMarkets([cErc20TokenB.address]);
 
 			// User Setup deposit: testTokenA 100
 			const TESTTOKENA_DEPOSIT_AMOUNT = 100n * DECIMAL;
