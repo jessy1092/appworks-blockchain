@@ -7,7 +7,7 @@ import {
 	DECIMAL,
 	deployBravo,
 	deployComp,
-	deployCompound,
+	deployCompoundWithOneMarket,
 	timelockExecuteTransaction,
 } from './setup';
 
@@ -74,7 +74,7 @@ describe('Bravo', function () {
 
 			const bravo = await deployBravo(owner);
 
-			const compound = await deployCompound(owner);
+			const compound = await deployCompoundWithOneMarket(owner);
 
 			// Setup Timelock with admin
 			await compound.unitrollerContract._setPendingAdmin(bravo.timelock.address);

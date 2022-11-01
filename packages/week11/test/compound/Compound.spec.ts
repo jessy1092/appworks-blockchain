@@ -3,7 +3,7 @@ import { expect } from 'chai';
 import { ethers } from 'hardhat';
 import Bignumber from 'bignumber.js';
 
-import { DECIMAL, deployCErc20, deployCompound, deployERC20 } from './setup';
+import { DECIMAL, deployCErc20, deployCompoundWithOneMarket, deployERC20 } from './setup';
 
 describe('Compound', function () {
 	// We define a fixture to reuse the same setup in every test.
@@ -21,7 +21,7 @@ describe('Compound', function () {
 		// Contracts are deployed using the first signer/account by default
 		const [owner, ...otherAccount] = await ethers.getSigners();
 
-		const compound = await deployCompound(owner);
+		const compound = await deployCompoundWithOneMarket(owner);
 
 		return {
 			owner,
@@ -33,7 +33,7 @@ describe('Compound', function () {
 	async function deployCompoundWithMultiMarketFixture() {
 		const [owner, ...otherAccount] = await ethers.getSigners();
 
-		const compound = await deployCompound(owner);
+		const compound = await deployCompoundWithOneMarket(owner);
 
 		const { unitrollerProxy, interestRateModel } = compound;
 

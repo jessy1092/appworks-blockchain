@@ -101,13 +101,25 @@ export const deployCErc20 = async (
 	return { testToken, cErc20Token, cErc20TokenDelegate };
 };
 
-export const deployCompound = async (owner: SignerWithAddress) => {
+export const deployCompound = async () => {
 	// Setup Controller
 	const { unitrollerProxy, priceOracle, unitrollerContract } = await deployController();
 
 	// Setup InterestRateModel
 	const ZeroInterestRateModelContract = await ethers.getContractFactory('ZeroInterestRateModel');
 	const interestRateModel = (await ZeroInterestRateModelContract.deploy()) as ZeroInterestRateModel;
+
+	return {
+		unitrollerProxy,
+		priceOracle,
+		interestRateModel,
+		unitrollerContract,
+	};
+};
+
+export const deployCompoundWithOneMarket = async (owner: SignerWithAddress) => {
+	const { unitrollerProxy, priceOracle, interestRateModel, unitrollerContract } =
+		await deployCompound();
 
 	// Setup CErc20Delegate and Erc20 TestToken
 	// Setup TestTokenA Market
