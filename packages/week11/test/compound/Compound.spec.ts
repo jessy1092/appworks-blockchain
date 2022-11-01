@@ -339,4 +339,165 @@ describe('Compound', function () {
 			);
 		});
 	});
+
+	describe('liquidate', function () {
+		async function setupLiquidateFixture() {
+			const compound = await deployCompoundWithMultiMarketFixture();
+
+			const {
+				priceOracle,
+				cErc20TokenA,
+				cErc20TokenB,
+				unitrollerProxy,
+				testTokenA,
+				testTokenB,
+				otherAccount,
+			} = compound;
+
+			const user2 = otherAccount[0];
+
+			// Setup tokenA for user2
+			await testTokenA.transfer(user2.address, 1000n * DECIMAL);
+
+			const TESTTOKENA_PRICE = 1n * DECIMAL;
+			const TESTTOKENB_PRICE = 100n * DECIMAL;
+			const COLLATERAL_FACTOR = new Bignumber(0.5).multipliedBy(DECIMAL.toString());
+
+			// Controller Setup Price: testTokenA = $1, testTokenB = $100
+			await priceOracle.setUnderlyingPrice(cErc20TokenA.address, TESTTOKENA_PRICE);
+			await priceOracle.setUnderlyingPrice(cErc20TokenB.address, TESTTOKENB_PRICE);
+
+			// Controller Setup Collateral factor: testTokenB 50% = 0.5
+			await unitrollerProxy._setCollateralFactor(
+				cErc20TokenB.address,
+				COLLATERAL_FACTOR.toString(),
+			);
+
+			// User Setup asset enter market as collateral (by user)
+			await unitrollerProxy.enterMarkets([cErc20TokenB.address]);
+
+			// User Setup deposit: testTokenA 100
+			const TESTTOKENA_DEPOSIT_AMOUNT = 100n * DECIMAL;
+			await testTokenA.approve(cErc20TokenA.address, TESTTOKENA_DEPOSIT_AMOUNT);
+			await cErc20TokenA.mint(TESTTOKENA_DEPOSIT_AMOUNT);
+
+			// Mint 1 cErc20TokenB by 1 testTokenB
+			const TESTTOKENB_DEPOSIT_AMOUNT = 1n * DECIMAL;
+			await testTokenB.approve(cErc20TokenB.address, TESTTOKENB_DEPOSIT_AMOUNT);
+			await cErc20TokenB.mint(TESTTOKENB_DEPOSIT_AMOUNT);
+
+			// User borrow tokenA
+			const TESTTOKENA_BORROW_AMOUNT = 50n * DECIMAL;
+			await cErc20TokenA.borrow(TESTTOKENA_BORROW_AMOUNT);
+
+			// 設置最大清算 factor
+			const CLOSE_FACTOR = new Bignumber(0.9).multipliedBy(DECIMAL.toString());
+			await unitrollerProxy._setCloseFactor(CLOSE_FACTOR.toString());
+
+			// 設置清算獎勵 % > 1
+			const LIQUIDATION_INCENTIVE = new Bignumber(1.08).multipliedBy(DECIMAL.toString());
+			await unitrollerProxy._setLiquidationIncentive(LIQUIDATION_INCENTIVE.toString());
+
+			// Protocal 清算抽成 protocolSeizeShareMantissa = 2.8%
+			const PROTOCOL_SEIZE_SHARE = new Bignumber(0.028).multipliedBy(DECIMAL.toString());
+
+			return {
+				...compound,
+				COLLATERAL_FACTOR,
+				user2,
+				CLOSE_FACTOR,
+				LIQUIDATION_INCENTIVE,
+				TESTTOKENA_PRICE,
+				TESTTOKENB_PRICE,
+				PROTOCOL_SEIZE_SHARE,
+			};
+		}
+
+		it('Should have shortfall after liquidated ', async function () {
+			const { owner, COLLATERAL_FACTOR, cErc20TokenB, unitrollerProxy } = await loadFixture(
+				setupLiquidateFixture,
+			);
+
+			await unitrollerProxy._setCollateralFactor(
+				cErc20TokenB.address,
+				COLLATERAL_FACTOR.dividedBy(2).toString(),
+			);
+
+			const result = await unitrollerProxy.getAccountLiquidity(owner.address);
+
+			// shortfall > 0
+			expect(result[2]).to.gt(0);
+		});
+
+		it('Could liquidate user that have shortfall ', async function () {
+			const {
+				owner,
+				user2,
+				testTokenA,
+				cErc20TokenA,
+				testTokenB,
+				COLLATERAL_FACTOR,
+				CLOSE_FACTOR,
+				cErc20TokenB,
+				unitrollerProxy,
+				LIQUIDATION_INCENTIVE,
+				TESTTOKENA_PRICE,
+				TESTTOKENB_PRICE,
+				PROTOCOL_SEIZE_SHARE,
+			} = await loadFixture(setupLiquidateFixture);
+
+			await unitrollerProxy._setCollateralFactor(
+				cErc20TokenB.address,
+				COLLATERAL_FACTOR.dividedBy(2).toString(),
+			);
+
+			const result = await unitrollerProxy.getAccountLiquidity(owner.address);
+
+			const shortfall = result[2];
+
+			const couldRepayAmount = new Bignumber(shortfall.toString()).multipliedBy(
+				CLOSE_FACTOR.dividedBy(DECIMAL.toString()),
+			);
+
+			await testTokenA.connect(user2).approve(cErc20TokenA.address, couldRepayAmount.toString());
+
+			const tokenBExchangeRate = await cErc20TokenB.exchangeRateStored();
+
+			const seizeAmount = couldRepayAmount
+				.multipliedBy(LIQUIDATION_INCENTIVE.toString())
+				.multipliedBy(TESTTOKENA_PRICE.toString())
+				.dividedBy(TESTTOKENB_PRICE.toString())
+				.dividedBy(DECIMAL.toString());
+
+			const seizeTokens = seizeAmount
+				.multipliedBy(DECIMAL.toString())
+				.dividedBy(tokenBExchangeRate.toString());
+
+			const protocolSeizeTokens = seizeTokens
+				.multipliedBy(PROTOCOL_SEIZE_SHARE)
+				.dividedBy(DECIMAL.toString());
+
+			const liquidatorSeizeTokens = seizeTokens.minus(protocolSeizeTokens);
+
+			// console.log('calculate', liquidatorSeizeTokens);
+
+			// user2 repay testTokenA, cErc20TokenA's testTokenA increase, user2's testTokenA decrease
+			// user2 earn cErc20TokenB, user2's cErc20TokenB increase, owner's cErc20TokenB decrease
+			await expect(
+				cErc20TokenA
+					.connect(user2)
+					.liquidateBorrow(owner.address, couldRepayAmount.toString(), cErc20TokenB.address),
+			)
+				.to.changeTokenBalances(
+					testTokenA,
+					[cErc20TokenA, user2],
+					[couldRepayAmount.toString(), couldRepayAmount.negated().toString()],
+				)
+				.to.changeTokenBalances(
+					cErc20TokenB,
+					[user2, owner],
+					[liquidatorSeizeTokens.toString(), seizeTokens.negated().toString()],
+				);
+		});
+	});
 });
