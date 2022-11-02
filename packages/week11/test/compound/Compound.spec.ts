@@ -455,9 +455,9 @@ describe('Compound', function () {
 
 			const shortfall = result[2];
 
-			const couldRepayAmount = new Bignumber(shortfall.toString()).multipliedBy(
-				CLOSE_FACTOR.dividedBy(DECIMAL.toString()),
-			);
+			const couldRepayAmount = new Bignumber(shortfall.toString())
+				.dividedBy(TESTTOKENA_PRICE.toString())
+				.multipliedBy(CLOSE_FACTOR);
 
 			await testTokenA.connect(user2).approve(cErc20TokenA.address, couldRepayAmount.toString());
 
