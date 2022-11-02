@@ -430,13 +430,12 @@ describe('Compound', function () {
 			expect(result[2]).to.gt(0);
 		});
 
-		it('Could liquidate user that have shortfall ', async function () {
+		it('Could liquidate user that have shortfall after decrease factor of collateral', async function () {
 			const {
 				owner,
 				user2,
 				testTokenA,
 				cErc20TokenA,
-				testTokenB,
 				COLLATERAL_FACTOR,
 				CLOSE_FACTOR,
 				cErc20TokenB,
@@ -447,6 +446,7 @@ describe('Compound', function () {
 				PROTOCOL_SEIZE_SHARE,
 			} = await loadFixture(setupLiquidateFixture);
 
+			// decrease tokenB collateral factor
 			await unitrollerProxy._setCollateralFactor(
 				cErc20TokenB.address,
 				COLLATERAL_FACTOR.dividedBy(2).toString(),
@@ -474,6 +474,85 @@ describe('Compound', function () {
 			liqCalculator.addToken({
 				name: 'TokenB',
 				price: new Bignumber(TESTTOKENB_PRICE.toString()),
+				exchangeRate: new Bignumber(tokenBExchangeRate.toString()),
+			});
+
+			const repayAmount = liqCalculator.getRepayAmount(
+				'TokenA',
+				new Bignumber(shortfall.toString()),
+			);
+
+			await testTokenA.connect(user2).approve(cErc20TokenA.address, repayAmount.toString());
+
+			const { seizeTokens, liquidatorSeizeTokens } = liqCalculator.getSeize(
+				'TokenA',
+				'TokenB',
+				repayAmount,
+			);
+
+			// console.log('calculate', liquidatorSeizeTokens);
+
+			// user2 repay testTokenA, cErc20TokenA's testTokenA increase, user2's testTokenA decrease
+			// user2 earn cErc20TokenB, user2's cErc20TokenB increase, owner's cErc20TokenB decrease
+			await expect(
+				cErc20TokenA
+					.connect(user2)
+					.liquidateBorrow(owner.address, repayAmount.toString(), cErc20TokenB.address),
+			)
+				.to.changeTokenBalances(
+					testTokenA,
+					[cErc20TokenA, user2],
+					[repayAmount.toString(), repayAmount.negated().toString()],
+				)
+				.to.changeTokenBalances(
+					cErc20TokenB,
+					[user2, owner],
+					[liquidatorSeizeTokens.toString(), seizeTokens.negated().toString()],
+				);
+		});
+
+		it('Could liquidate user that have shortfall after decrease price of collateral', async function () {
+			const {
+				owner,
+				user2,
+				testTokenA,
+				cErc20TokenA,
+				CLOSE_FACTOR,
+				cErc20TokenB,
+				unitrollerProxy,
+				LIQUIDATION_INCENTIVE,
+				TESTTOKENA_PRICE,
+				TESTTOKENB_PRICE,
+				PROTOCOL_SEIZE_SHARE,
+				priceOracle,
+			} = await loadFixture(setupLiquidateFixture);
+
+			// decrease tokenB oracle price
+			const NEW_TESTTOKENB_PRICE = TESTTOKENB_PRICE / 2n;
+			await priceOracle.setUnderlyingPrice(cErc20TokenB.address, NEW_TESTTOKENB_PRICE);
+
+			const result = await unitrollerProxy.getAccountLiquidity(owner.address);
+
+			const tokenBExchangeRate = await cErc20TokenB.exchangeRateStored();
+
+			const shortfall = result[2];
+
+			// Setup calculator
+			const liqCalculator = new LiqCalculator(
+				CLOSE_FACTOR,
+				LIQUIDATION_INCENTIVE,
+				PROTOCOL_SEIZE_SHARE,
+			);
+
+			liqCalculator.addToken({
+				name: 'TokenA',
+				price: new Bignumber(TESTTOKENA_PRICE.toString()),
+				exchangeRate: new Bignumber(0), // not use
+			});
+
+			liqCalculator.addToken({
+				name: 'TokenB',
+				price: new Bignumber(NEW_TESTTOKENB_PRICE.toString()),
 				exchangeRate: new Bignumber(tokenBExchangeRate.toString()),
 			});
 
