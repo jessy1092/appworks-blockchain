@@ -4,14 +4,28 @@ import * as dotenv from 'dotenv';
 
 dotenv.config({ path: '../../.env' });
 
+// {
+// 	version: '0.6.12',
+// 	settings: {
+// 		optimizer: {
+// 			enabled: true,
+// 			runs: 200,
+// 			details: {
+// 				yul: false,
+// 			},
+// 		},
+// 	},
+// },
+
 const config: HardhatUserConfig = {
 	solidity: {
 		version: '0.8.16',
 		settings: {
 			optimizer: {
 				enabled: true,
-				runs: 1000,
+				runs: 200,
 			},
+			viaIR: true,
 		},
 	},
 	networks: {
@@ -22,9 +36,10 @@ const config: HardhatUserConfig = {
 		hardhat: {
 			forking: {
 				url: `https://eth-mainnet.g.alchemy.com/v2/${process.env.ALCHEMY_FORK_API_KEY}`,
-				blockNumber: 14390000,
+				blockNumber: 15815693,
 				enabled: process.env.HARDHAT_FORK_TEST ? true : false,
 			},
+			allowUnlimitedContractSize: true,
 		},
 	},
 	etherscan: {

@@ -20,6 +20,7 @@ import { GovernorAlphaZero } from '../../test-types/contracts/Compound.sol/Gover
 import TestTokenData from '../../artifacts/contracts/Compound.sol/TestToken.json';
 import GovernorAlphaData from '../../artifacts/compound-protocol/contracts/Governance/GovernorAlpha.sol/GovernorAlpha.json';
 import { DECIMAL } from './utils';
+import { ERC20 } from '../../test-types';
 
 const SEC = 1;
 const MIN = 60 * SEC;
@@ -98,6 +99,45 @@ export const deployCErc20 = async (
 
 	// cErc20TokenDelegate for check error
 	return { testToken, cErc20Token, cErc20TokenDelegate };
+};
+
+export const deployCErc20WithExistERC20 = async (
+	name: string,
+	symbol: string,
+	erc20address: string,
+	comptroller: Comptroller,
+	interestRateModel: ZeroInterestRateModel,
+	owner: SignerWithAddress,
+) => {
+	const erc20Token = (await ethers.getContractAt('ERC20', erc20address)) as ERC20;
+
+	const decimal = await erc20Token.decimals();
+
+	// (18 - 18 + underlying decimal)
+	const exchangeRate = 10n ** BigInt(decimal);
+
+	// console.log('exchange rate?', decimal, exchangeRate);
+
+	// Setup CErc20Delegate implementation
+	const CErc20TokenDelegate = await ethers.getContractFactory('CErc20Delegate');
+	const cErc20TokenDelegate = (await CErc20TokenDelegate.deploy()) as CErc20Delegate;
+
+	const CErc20TokenDelegator = await ethers.getContractFactory('CErc20Delegator');
+	const cErc20Token = (await CErc20TokenDelegator.deploy(
+		erc20address,
+		comptroller.address,
+		interestRateModel.address,
+		exchangeRate,
+		`c${name}`,
+		`c${symbol}`,
+		18,
+		owner.address,
+		cErc20TokenDelegate.address,
+		'0x00',
+	)) as CErc20Delegator;
+
+	// cErc20TokenDelegate for check error
+	return { cErc20Token, cErc20TokenDelegate };
 };
 
 export const deployCompound = async () => {

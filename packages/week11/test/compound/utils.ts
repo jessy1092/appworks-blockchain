@@ -51,17 +51,33 @@ export class LiqCalculator {
 		const tokenA = this.tokens[tokenAName];
 		const tokenB = this.tokens[tokenBName];
 
+		//  seizeTokens = seizeAmount / exchangeRate
+		//  = actualRepayAmount * (liquidationIncentive * priceBorrowed) / (priceCollateral * exchangeRate)
+
+		// const numerator = this.liquidationIncentive.multipliedBy(tokenA.price);
+		// const denominator = tokenB.price.multipliedBy(tokenB.exchangeRate);
+
+		// const ratio = numerator.dividedBy(denominator).multipliedBy(DECIMAL.toString()).toFixed(0);
+
 		const seizeAmount = repayAmount
 			.multipliedBy(this.liquidationIncentive)
 			.multipliedBy(tokenA.price)
 			.dividedBy(tokenB.price)
 			.dividedBy(DECIMAL.toString());
 
-		const seizeTokens = seizeAmount.multipliedBy(DECIMAL.toString()).dividedBy(tokenB.exchangeRate);
+		// console.log(seizeAmount.toString());
+
+		const seizeTokens = seizeAmount
+			.multipliedBy(DECIMAL.toString())
+			.dividedBy(tokenB.exchangeRate)
+			.decimalPlaces(0, Bignumber.ROUND_FLOOR);
+
+		// console.log(seizeTokens.toString());
 
 		const protocolSeizeTokens = seizeTokens
 			.multipliedBy(this.protocolSeizeShare)
-			.dividedBy(DECIMAL.toString());
+			.dividedBy(DECIMAL.toString())
+			.decimalPlaces(0, Bignumber.ROUND_FLOOR);
 
 		const liquidatorSeizeTokens = seizeTokens.minus(protocolSeizeTokens);
 
