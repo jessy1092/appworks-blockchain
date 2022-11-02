@@ -4,12 +4,12 @@ import { ethers } from 'hardhat';
 import Bignumber from 'bignumber.js';
 
 import {
-	DECIMAL,
 	deployBravo,
 	deployComp,
 	deployCompoundWithOneMarket,
 	timelockExecuteTransaction,
 } from './setup';
+import { DECIMAL } from './utils';
 
 describe('Bravo', function () {
 	// We define a fixture to reuse the same setup in every test.

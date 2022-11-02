@@ -3,7 +3,8 @@ import { expect } from 'chai';
 import { ethers } from 'hardhat';
 import Bignumber from 'bignumber.js';
 
-import { DECIMAL, deployCErc20, deployCompoundWithOneMarket, deployERC20 } from './setup';
+import { deployCErc20, deployCompoundWithOneMarket, deployERC20 } from './setup';
+import { DECIMAL, LiqCalculator } from './utils';
 
 describe('Compound', function () {
 	// We define a fixture to reuse the same setup in every test.
@@ -453,31 +454,41 @@ describe('Compound', function () {
 
 			const result = await unitrollerProxy.getAccountLiquidity(owner.address);
 
-			const shortfall = result[2];
-
-			const couldRepayAmount = new Bignumber(shortfall.toString())
-				.dividedBy(TESTTOKENA_PRICE.toString())
-				.multipliedBy(CLOSE_FACTOR);
-
-			await testTokenA.connect(user2).approve(cErc20TokenA.address, couldRepayAmount.toString());
-
 			const tokenBExchangeRate = await cErc20TokenB.exchangeRateStored();
 
-			const seizeAmount = couldRepayAmount
-				.multipliedBy(LIQUIDATION_INCENTIVE.toString())
-				.multipliedBy(TESTTOKENA_PRICE.toString())
-				.dividedBy(TESTTOKENB_PRICE.toString())
-				.dividedBy(DECIMAL.toString());
+			const shortfall = result[2];
 
-			const seizeTokens = seizeAmount
-				.multipliedBy(DECIMAL.toString())
-				.dividedBy(tokenBExchangeRate.toString());
+			// Setup calculator
+			const liqCalculator = new LiqCalculator(
+				CLOSE_FACTOR,
+				LIQUIDATION_INCENTIVE,
+				PROTOCOL_SEIZE_SHARE,
+			);
 
-			const protocolSeizeTokens = seizeTokens
-				.multipliedBy(PROTOCOL_SEIZE_SHARE)
-				.dividedBy(DECIMAL.toString());
+			liqCalculator.addToken({
+				name: 'TokenA',
+				price: new Bignumber(TESTTOKENA_PRICE.toString()),
+				exchangeRate: new Bignumber(0), // not use
+			});
 
-			const liquidatorSeizeTokens = seizeTokens.minus(protocolSeizeTokens);
+			liqCalculator.addToken({
+				name: 'TokenB',
+				price: new Bignumber(TESTTOKENB_PRICE.toString()),
+				exchangeRate: new Bignumber(tokenBExchangeRate.toString()),
+			});
+
+			const repayAmount = liqCalculator.getRepayAmount(
+				'TokenA',
+				new Bignumber(shortfall.toString()),
+			);
+
+			await testTokenA.connect(user2).approve(cErc20TokenA.address, repayAmount.toString());
+
+			const { seizeTokens, liquidatorSeizeTokens } = liqCalculator.getSeize(
+				'TokenA',
+				'TokenB',
+				repayAmount,
+			);
 
 			// console.log('calculate', liquidatorSeizeTokens);
 
@@ -486,12 +497,12 @@ describe('Compound', function () {
 			await expect(
 				cErc20TokenA
 					.connect(user2)
-					.liquidateBorrow(owner.address, couldRepayAmount.toString(), cErc20TokenB.address),
+					.liquidateBorrow(owner.address, repayAmount.toString(), cErc20TokenB.address),
 			)
 				.to.changeTokenBalances(
 					testTokenA,
 					[cErc20TokenA, user2],
-					[couldRepayAmount.toString(), couldRepayAmount.negated().toString()],
+					[repayAmount.toString(), repayAmount.negated().toString()],
 				)
 				.to.changeTokenBalances(
 					cErc20TokenB,

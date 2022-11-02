@@ -19,8 +19,7 @@ import { GovernorAlphaZero } from '../../test-types/contracts/Compound.sol/Gover
 // Use Compiled data file to specific deploy
 import TestTokenData from '../../artifacts/contracts/Compound.sol/TestToken.json';
 import GovernorAlphaData from '../../artifacts/compound-protocol/contracts/Governance/GovernorAlpha.sol/GovernorAlpha.json';
-
-export const DECIMAL = 10n ** 18n;
+import { DECIMAL } from './utils';
 
 const SEC = 1;
 const MIN = 60 * SEC;
