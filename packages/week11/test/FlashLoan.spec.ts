@@ -3,14 +3,13 @@ import { expect } from 'chai';
 import { ethers, network } from 'hardhat';
 import Bignumber from 'bignumber.js';
 
-// import ILendingPoolData from '@aave/protocol-v2/artifacts/contracts/interfaces/ILendingPool.sol/ILendingPool.json';
+import ILendingPoolData from '@aave/protocol-v2/artifacts/contracts/interfaces/ILendingPool.sol/ILendingPool.json';
 
 import { ERC20 } from '../test-types';
 import { CompoundFlashLoan } from '../test-types/contracts/FlashLoan.sol';
 
 import { deployCErc20WithExistERC20, deployCompound } from './compound/setup';
 import { DECIMAL, LiqCalculator } from './compound/utils';
-// import BigNumber from 'bignumber.js';
 
 const USDC_DECIMAL = 10n ** 6n;
 
@@ -21,6 +20,7 @@ const UNIAddress = '0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984';
 
 const AAVELendingPoolAddressesProvider = '0xB53C1a33016B2DC2fF3653530bfF1848a515c8c5';
 const AAVELendingPool = '0x7d2768dE32b0b80b7a3454c06BdAc94A69DDc7A9';
+const AAVESwapRouter = '0xE592427A0AEce92De3Edee1F18E0157C05861564';
 
 describe('Flashloan', function () {
 	// We define a fixture to reuse the sayme setup in every test.
@@ -33,14 +33,12 @@ describe('Flashloan', function () {
 		const compoundFlashLoan = (await CompoundFlashLoanContract.deploy(
 			AAVELendingPoolAddressesProvider,
 			AAVELendingPool,
+			AAVESwapRouter,
 		)) as CompoundFlashLoan;
 
-		// const lendingPool = await ethers.getContractAt(ILendingPoolData.abi, AAVELendingPool);
+		const lendingPool = await ethers.getContractAt(ILendingPoolData.abi, AAVELendingPool);
 
-		// const Basic = await ethers.getContractFactory('King');
-		// const basic = await Basic.deploy(otherAccount.address);
-
-		return { compoundFlashLoan };
+		return { compoundFlashLoan, lendingPool };
 	}
 
 	async function setupForkMainnetFixture() {
@@ -337,6 +335,7 @@ describe('Flashloan', function () {
 	describe('Flashloan', function () {
 		async function setupBorrowAndFlashLoanFixture() {
 			const compound = await setupCompoundFixture();
+			const { compoundFlashLoan, lendingPool } = await setupFlashLoanFixture();
 
 			const { user1, priceOracle, usdcToken, cUsdcToken, uniToken, cUniToken, unitrollerProxy } =
 				compound;
@@ -428,8 +427,6 @@ describe('Flashloan', function () {
 				repayAmount,
 			);
 
-			const { compoundFlashLoan } = await setupFlashLoanFixture();
-
 			return {
 				...compound,
 				CLOSE_FACTOR,
@@ -441,36 +438,68 @@ describe('Flashloan', function () {
 				liquidatorSeizeTokens,
 				repayAmount,
 				compoundFlashLoan,
+				lendingPool,
 			};
 		}
 
 		it('Could liquidate user who have shortfall when uni decrease $6.2', async function () {
-			const { user1, user2, usdcToken, uniToken, compoundFlashLoan, repayAmount } =
-				await loadFixture(setupBorrowAndFlashLoanFixture);
+			const {
+				user1,
+				user2,
+				usdcToken,
+				cUsdcToken,
+				uniToken,
+				cUniToken,
+				compoundFlashLoan,
+				repayAmount,
+				lendingPool,
+			} = await loadFixture(setupBorrowAndFlashLoanFixture);
+
+			const abi = new ethers.utils.AbiCoder();
+
+			// For fake pass
+			// await usdcToken.transfer(compoundFlashLoan.address, repayAmount.toString());
+			// console.log(repayAmount.toString());
 
 			// 		receiverAddress,
 			// 		assets,
 			// 		amounts,
 			// 		modes,
 			// 		onBehalfOf,
-			// 		params,
+			// 		params => address borrower, address liquidateAddress, address rewardAddress, address rewardErc20Address
 			// 		referralCode
-			// const assets = [usdcToken.address];
-			// const amounts = [repayAmount.toString()];
-			// const modes = [0];
-			// await lendingPool.flashLoan(
-			// 	compoundFlashLoan.address,
-			// 	assets,
-			// 	amounts,
-			// 	modes,
-			// 	'0x0000000000000000000000000000000000000000',
-			// 	'',
-			// 	0,
-			// );
 
-			// console.log('repay?', repayAmount);
+			await expect(
+				lendingPool
+					.connect(user2)
+					.flashLoan(
+						compoundFlashLoan.address,
+						[usdcToken.address],
+						[repayAmount.toString()],
+						[0],
+						'0x0000000000000000000000000000000000000000',
+						abi.encode(
+							['address', 'address', 'address', 'address'],
+							[user1.address, cUsdcToken.address, cUniToken.address, uniToken.address],
+						),
+						0,
+					),
+			)
+				.to.emit(compoundFlashLoan, 'FlashLoanSuccess')
+				.withArgs(1794987081, 1711539000)
+				.to.changeTokenBalance(usdcToken, compoundFlashLoan.address, 1794987081 - 1711539000);
 
-			expect(true).to.equal(true);
+			const earnReward = 1794987081 - 1711539000;
+
+			await expect(
+				compoundFlashLoan.connect(user2).withdraw(usdcToken.address, earnReward),
+			).to.changeTokenBalances(usdcToken, [compoundFlashLoan, user2], [-earnReward, earnReward]);
+
+			// console.log('Earn', 1794987081 - 1711539000);
+			// 83448081
+			// 1711539000;
+			// 1794987081;
+			// 1710000000;
 		});
 	});
 });

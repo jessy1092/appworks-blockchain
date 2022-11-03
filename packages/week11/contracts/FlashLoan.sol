@@ -2,7 +2,10 @@
 pragma solidity ^0.8.16;
 
 import { IERC20 } from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
-import { CErc20Delegate } from 'compound-protocol/contracts/CErc20Delegate.sol';
+import { CErc20 } from 'compound-protocol/contracts/CErc20.sol';
+
+import { TransferHelper } from '@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol';
+import { ISwapRouter } from '@uniswap/v3-periphery/contracts/interfaces/ISwapRouter.sol';
 
 // import 'hardhat/console.sol';
 
@@ -27,12 +30,33 @@ interface IFlashLoanReceiver {
 }
 
 contract CompoundFlashLoan is IFlashLoanReceiver {
+	event FlashLoanSuccess(uint256 n1, uint256 n2);
+
 	address public immutable override ADDRESSES_PROVIDER;
 	address public immutable override LENDING_POOL;
 
-	constructor(address provider, address lendingPool) {
+	// For this example, we will set the pool fee to 0.3%.
+	uint24 public constant poolFee = 3000;
+
+	ISwapRouter public immutable swapRouter;
+
+	address public admin;
+
+	constructor(
+		address provider,
+		address lendingPool,
+		ISwapRouter _swapRouter
+	) {
 		ADDRESSES_PROVIDER = provider;
 		LENDING_POOL = lendingPool;
+		swapRouter = _swapRouter;
+		admin = msg.sender;
+	}
+
+	function withdraw(IERC20 asset, uint256 amount) external {
+		require(msg.sender == admin, 'Only admin can withdraw');
+
+		asset.transfer(admin, amount);
 	}
 
 	/**
@@ -52,39 +76,58 @@ contract CompoundFlashLoan is IFlashLoanReceiver {
 
 		(
 			address borrower,
-			address liquideAddress,
+			address liquidateAddress,
 			address rewardAddress,
-			address liquideErc20Address,
 			address rewardErc20Address
-		) = abi.decode(params, (address, address, address, address, address));
+		) = abi.decode(params, (address, address, address, address));
 
-		CErc20Delegate liquideCERC20Token = CErc20Delegate(liquideAddress);
-		CErc20Delegate rewardCERC20Token = CErc20Delegate(rewardAddress);
+		IERC20(assets[0]).approve(liquidateAddress, amounts[0]);
 
-		liquideCERC20Token.liquidateBorrow(borrower, amounts[0], rewardCERC20Token);
+		// Liquidate the borrower debt
+		CErc20(liquidateAddress).liquidateBorrow(borrower, amounts[0], CErc20(rewardAddress));
 
-		uint256 redeemTokens = rewardCERC20Token.balanceOf(address(this));
-
-		// console.log(redeemTokens);
+		uint256 redeemTokens = IERC20(rewardAddress).balanceOf(address(this));
 
 		// redeem reward
-		liquideCERC20Token.redeem(redeemTokens);
+		CErc20(rewardAddress).redeem(redeemTokens);
 
-		IERC20 liquideToken = IERC20(liquideErc20Address);
-		IERC20 rewardToken = IERC20(rewardErc20Address);
+		uint256 rewardBalances = IERC20(rewardErc20Address).balanceOf(address(this));
 
-		uint256 rewardBalances = liquideToken.balanceOf(address(this));
+		// emit LOG(rewardBalances, redeemTokens);
+
+		// Approve the router to spend DAI.
+		TransferHelper.safeApprove(rewardErc20Address, address(swapRouter), rewardBalances);
+
+		// Naively set amountOutMinimum to 0. In production, use an oracle or other data source to choose a safer value for amountOutMinimum.
+		// We also set the sqrtPriceLimitx96 to be 0 to ensure we swap our exact input amount.
+		ISwapRouter.ExactInputSingleParams memory uniSwapparams = ISwapRouter
+			.ExactInputSingleParams({
+				tokenIn: rewardErc20Address,
+				tokenOut: assets[0],
+				fee: poolFee,
+				recipient: address(this),
+				deadline: block.timestamp,
+				amountIn: rewardBalances,
+				amountOutMinimum: 0,
+				sqrtPriceLimitX96: 0
+			});
+
+		// The call to `exactInputSingle` executes the swap.
+		uint256 amountOut = swapRouter.exactInputSingle(uniSwapparams);
 
 		// console.log(rewardBalances);
-
+		//
 		// At the end of your logic above, this contract owes
 		// the flashloaned amounts + premiums.
 		// Therefore ensure your contract has enough to repay
 		// these amounts.
-
-		// Approve the LendingPool contract allowance to *pull* the owed amount
 		uint256 amountOwing = amounts[0] + premiums[0];
-		IERC20(assets[0]).approve(address(LENDING_POOL), amountOwing);
+
+		if (amountOut > amountOwing) {
+			// Approve the LendingPool contract allowance to *pull* the owed amount
+			IERC20(assets[0]).approve(address(LENDING_POOL), amountOwing);
+			emit FlashLoanSuccess(amountOut, amountOwing);
+		}
 
 		return true;
 	}

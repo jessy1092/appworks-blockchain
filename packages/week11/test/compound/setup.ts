@@ -18,7 +18,7 @@ import { GovernorAlphaZero } from '../../test-types/contracts/Compound.sol/Gover
 
 // Use Compiled data file to specific deploy
 import TestTokenData from '../../artifacts/contracts/Compound.sol/TestToken.json';
-import GovernorAlphaData from '../../artifacts/compound-protocol/contracts/Governance/GovernorAlpha.sol/GovernorAlpha.json';
+
 import { DECIMAL } from './utils';
 import { ERC20 } from '../../test-types';
 
