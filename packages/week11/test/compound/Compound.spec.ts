@@ -411,6 +411,7 @@ describe('Compound', function () {
 				TESTTOKENA_PRICE,
 				TESTTOKENB_PRICE,
 				PROTOCOL_SEIZE_SHARE,
+				TESTTOKENA_BORROW_AMOUNT,
 			};
 		}
 
@@ -444,6 +445,7 @@ describe('Compound', function () {
 				TESTTOKENA_PRICE,
 				TESTTOKENB_PRICE,
 				PROTOCOL_SEIZE_SHARE,
+				TESTTOKENA_BORROW_AMOUNT,
 			} = await loadFixture(setupLiquidateFixture);
 
 			// decrease tokenB collateral factor
@@ -452,11 +454,11 @@ describe('Compound', function () {
 				COLLATERAL_FACTOR.dividedBy(2).toString(),
 			);
 
-			const result = await unitrollerProxy.getAccountLiquidity(owner.address);
+			// const result = await unitrollerProxy.getAccountLiquidity(owner.address);
 
 			const tokenBExchangeRate = await cErc20TokenB.exchangeRateStored();
 
-			const shortfall = result[2];
+			// const shortfall = result[2];
 
 			// Setup calculator
 			const liqCalculator = new LiqCalculator(
@@ -479,7 +481,7 @@ describe('Compound', function () {
 
 			const repayAmount = liqCalculator.getRepayAmount(
 				'TokenA',
-				new Bignumber(shortfall.toString()),
+				new Bignumber(((TESTTOKENA_BORROW_AMOUNT * TESTTOKENA_PRICE) / DECIMAL).toString()),
 			);
 
 			await testTokenA.connect(user2).approve(cErc20TokenA.address, repayAmount.toString());
@@ -525,17 +527,18 @@ describe('Compound', function () {
 				TESTTOKENB_PRICE,
 				PROTOCOL_SEIZE_SHARE,
 				priceOracle,
+				TESTTOKENA_BORROW_AMOUNT,
 			} = await loadFixture(setupLiquidateFixture);
 
 			// decrease tokenB oracle price
 			const NEW_TESTTOKENB_PRICE = TESTTOKENB_PRICE / 2n;
 			await priceOracle.setUnderlyingPrice(cErc20TokenB.address, NEW_TESTTOKENB_PRICE);
 
-			const result = await unitrollerProxy.getAccountLiquidity(owner.address);
+			// const result = await unitrollerProxy.getAccountLiquidity(owner.address);
 
 			const tokenBExchangeRate = await cErc20TokenB.exchangeRateStored();
 
-			const shortfall = result[2];
+			// const shortfall = result[2];
 
 			// Setup calculator
 			const liqCalculator = new LiqCalculator(
@@ -558,7 +561,7 @@ describe('Compound', function () {
 
 			const repayAmount = liqCalculator.getRepayAmount(
 				'TokenA',
-				new Bignumber(shortfall.toString()),
+				new Bignumber(((TESTTOKENA_BORROW_AMOUNT * TESTTOKENA_PRICE) / DECIMAL).toString()),
 			);
 
 			await testTokenA.connect(user2).approve(cErc20TokenA.address, repayAmount.toString());

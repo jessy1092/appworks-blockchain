@@ -274,9 +274,8 @@ describe('Flashloan', function () {
 			const NEW_UNITOKEN_PRICE = (62n * DECIMAL) / 10n;
 			await priceOracle.setUnderlyingPrice(cUniToken.address, NEW_UNITOKEN_PRICE);
 
-			const result = await unitrollerProxy.getAccountLiquidity(user1.address);
-
-			const shortfall = result[2];
+			// const result = await unitrollerProxy.getAccountLiquidity(user1.address);
+			// const shortfall = result[2];
 
 			const uniTokenExchangeRate = await cUniToken.exchangeRateStored();
 
@@ -301,7 +300,7 @@ describe('Flashloan', function () {
 
 			const repayAmount = liqCalculator.getRepayAmount(
 				'USDCToken',
-				new Bignumber(shortfall.toString()),
+				new Bignumber(((USDC_BORROW_AMOUNT * USDCTOKEN_PRICE) / DECIMAL).toString()),
 			);
 
 			await usdcToken.connect(user2).approve(cUsdcToken.address, repayAmount.toString());
@@ -393,7 +392,7 @@ describe('Flashloan', function () {
 
 			const result = await unitrollerProxy.getAccountLiquidity(user1.address);
 
-			const shortfall = result[2];
+			// const shortfall = result[2];
 
 			const uniTokenExchangeRate = await cUniToken.exchangeRateStored();
 
@@ -418,7 +417,7 @@ describe('Flashloan', function () {
 
 			const repayAmount = liqCalculator.getRepayAmount(
 				'USDCToken',
-				new Bignumber(shortfall.toString()),
+				new Bignumber(((USDC_BORROW_AMOUNT * USDCTOKEN_PRICE) / DECIMAL).toString()),
 			);
 
 			const { seizeTokens, liquidatorSeizeTokens } = liqCalculator.getSeize(
@@ -486,10 +485,10 @@ describe('Flashloan', function () {
 					),
 			)
 				.to.emit(compoundFlashLoan, 'FlashLoanSuccess')
-				.withArgs(1794987081, 1711539000)
-				.to.changeTokenBalance(usdcToken, compoundFlashLoan.address, 1794987081 - 1711539000);
+				.withArgs(4721996686, 4504050000)
+				.to.changeTokenBalance(usdcToken, compoundFlashLoan.address, 4721996686 - 4504050000);
 
-			const earnReward = 1794987081 - 1711539000;
+			const earnReward = 4721996686 - 4504050000;
 
 			await expect(
 				compoundFlashLoan.connect(user2).withdraw(usdcToken.address, earnReward),
