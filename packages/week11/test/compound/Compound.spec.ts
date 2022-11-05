@@ -100,8 +100,6 @@ describe('Compound', function () {
 
 			await cErc20TokenA.mint(MINT_AMOUNT);
 
-			await cErc20TokenA.approve(owner.address, MINT_AMOUNT);
-
 			// owner's testTokenA increase, cErc20TokenA's testTokenA decrease
 			await expect(cErc20TokenA.redeem(MINT_AMOUNT)).to.changeTokenBalances(
 				testTokenA,
@@ -263,8 +261,6 @@ describe('Compound', function () {
 			const TESTTOKENA_BORROW_AMOUNT = 50n * DECIMAL;
 			await cErc20TokenA.borrow(TESTTOKENA_BORROW_AMOUNT);
 
-			await cErc20TokenB.approve(owner.address, TESTTOKENB_DEPOSIT_AMOUNT);
-
 			await expect(cErc20TokenB.redeem(TESTTOKENB_DEPOSIT_AMOUNT))
 				.to.be.revertedWithCustomError(cErc20TokenBDelegate, 'RedeemComptrollerRejection')
 				.withArgs(4);
@@ -329,8 +325,6 @@ describe('Compound', function () {
 
 			// owner's testTokenA decrease, cErc20TokenA's testTokenA increase
 			await cErc20TokenA.repayBorrow(TESTTOKENA_BORROW_AMOUNT);
-
-			await cErc20TokenB.approve(owner.address, TESTTOKENB_DEPOSIT_AMOUNT);
 
 			// owner's testTokenA decrease, cErc20TokenA's testTokenA increase
 			await expect(cErc20TokenB.redeem(TESTTOKENB_DEPOSIT_AMOUNT)).to.changeTokenBalances(
