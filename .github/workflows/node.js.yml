@@ -16,6 +16,12 @@ jobs:
       matrix:
         node-version: [16.x]
 
+    env:
+      ALCHEMY_API_KEY: ${{ secrets.ALCHEMY_API_KEY }}
+      ALCHEMY_FORK_API_KEY: ${{ secrets.ALCHEMY_FORK_API_KEY }}
+      ETHERSCAN_API_KEY: ${{ secrets.ETHERSCAN_API_KEY }}
+      REACT_APP_WEBSOCKET_KEY: ${{ secrets.REACT_APP_WEBSOCKET_KEY }}
+
     steps:
       - uses: actions/checkout@v3
       - name: Use Node.js ${{ matrix.node-version }}
