@@ -2,9 +2,13 @@ import { loadFixture } from '@nomicfoundation/hardhat-network-helpers';
 import { expect } from 'chai';
 import { ethers } from 'hardhat';
 import Bignumber from 'bignumber.js';
+import { LogLevel, Logger } from '@ethersproject/logger';
 
 import { deployCErc20, deployCompoundWithOneMarket, deployERC20 } from './setup';
 import { DECIMAL, LiqCalculator } from './utils';
+
+// Close warning: Duplicate definition
+Logger.setLogLevel(LogLevel.ERROR);
 
 describe('Compound', function () {
 	// We define a fixture to reuse the same setup in every test.

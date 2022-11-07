@@ -2,6 +2,7 @@ import { loadFixture, time, mineUpTo } from '@nomicfoundation/hardhat-network-he
 import { expect } from 'chai';
 import { ethers } from 'hardhat';
 import Bignumber from 'bignumber.js';
+import { LogLevel, Logger } from '@ethersproject/logger';
 
 import {
 	deployBravo,
@@ -10,6 +11,9 @@ import {
 	timelockExecuteTransaction,
 } from './setup';
 import { DECIMAL } from './utils';
+
+// Close warning: Duplicate definition
+Logger.setLogLevel(LogLevel.ERROR);
 
 describe('Bravo', function () {
 	// We define a fixture to reuse the same setup in every test.

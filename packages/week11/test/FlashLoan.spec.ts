@@ -2,6 +2,7 @@ import { loadFixture } from '@nomicfoundation/hardhat-network-helpers';
 import { expect } from 'chai';
 import { ethers, network } from 'hardhat';
 import Bignumber from 'bignumber.js';
+import { LogLevel, Logger } from '@ethersproject/logger';
 
 import ILendingPoolData from '@aave/protocol-v2/artifacts/contracts/interfaces/ILendingPool.sol/ILendingPool.json';
 
@@ -10,6 +11,9 @@ import { CompoundFlashLoan } from '../test-types/contracts/FlashLoan.sol';
 
 import { deployCErc20WithExistERC20, deployCompound } from './compound/setup';
 import { DECIMAL, LiqCalculator } from './compound/utils';
+
+// Close warning: Duplicate definition
+Logger.setLogLevel(LogLevel.ERROR);
 
 const USDC_DECIMAL = 10n ** 6n;
 
