@@ -9,7 +9,10 @@ const config: HardhatUserConfig = {
 	networks: {
 		goerli: {
 			url: `https://eth-goerli.g.alchemy.com/v2/${process.env.ALCHEMY_API_KEY}`,
-			accounts: [process.env.GOERLI_PRIVATE_KEY as string],
+			accounts:
+				typeof process.env.GOERLI_PRIVATE_KEY !== 'undefined'
+					? [process.env.GOERLI_PRIVATE_KEY as string]
+					: [],
 		},
 	},
 	etherscan: {
