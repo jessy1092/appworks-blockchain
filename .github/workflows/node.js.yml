@@ -30,4 +30,4 @@ jobs:
       - name: Build Pages
         run: yarn workspace @app-block/explorer build
       - name: Test
-        run: yarn workspaces foreach -p run test
+        run: yarn workspaces foreach run test
