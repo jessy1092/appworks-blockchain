@@ -4,7 +4,7 @@ import { ethers, upgrades } from 'hardhat';
 import keccak256 from 'keccak256';
 import BigNumber from 'bignumber.js';
 
-import { createMerkleTree } from '../node-whitelist';
+import { createMerkleTree } from '../utils';
 import { AppWorks, AppWorksV2, AppWorksV3 } from '../test-types';
 
 describe('AppWorks', function () {
