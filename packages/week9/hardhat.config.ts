@@ -19,14 +19,14 @@ const config: HardhatUserConfig = {
 	etherscan: {
 		apiKey: process.env.ETHERSCAN_API_KEY,
 	},
-	typechain: process.env.HARDHAT_TEST
+	typechain: process.env.HARDHAT_WEB3_TYPE
 		? {
-				outDir: 'test-types', // For hardhat testing usage
-				target: 'ethers-v5',
-		  }
-		: {
 				outDir: 'web3-types', // For external web3 usage
 				target: 'web3-v1',
+		  }
+		: {
+				outDir: 'test-types', // For hardhat testing usage
+				target: 'ethers-v5',
 		  },
 };
 
