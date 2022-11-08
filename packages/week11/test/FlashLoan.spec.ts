@@ -169,7 +169,7 @@ describe('Flashloan', function () {
 			// console.log('cUSDC balance:', cUsdcTokenBalance);
 
 			// 設置最大清算 factor
-			const CLOSE_FACTOR = new Bignumber(0.9).multipliedBy(DECIMAL.toString());
+			const CLOSE_FACTOR = new Bignumber(0.5).multipliedBy(DECIMAL.toString());
 			await unitrollerProxy._setCloseFactor(CLOSE_FACTOR.toString());
 
 			// 設置清算獎勵 % > 1
@@ -366,7 +366,7 @@ describe('Flashloan', function () {
 			// console.log('cUSDC balance:', cUsdcTokenBalance);
 
 			// 設置最大清算 factor
-			const CLOSE_FACTOR = new Bignumber(0.9).multipliedBy(DECIMAL.toString());
+			const CLOSE_FACTOR = new Bignumber(0.5).multipliedBy(DECIMAL.toString());
 			await unitrollerProxy._setCloseFactor(CLOSE_FACTOR.toString());
 
 			// 設置清算獎勵 % > 1
@@ -488,21 +488,21 @@ describe('Flashloan', function () {
 						0,
 					),
 			)
+				.to.changeTokenBalance(usdcToken, compoundFlashLoan.address, 2623989940 - 2502250000)
 				.to.emit(compoundFlashLoan, 'FlashLoanSuccess')
-				.withArgs(4721996686, 4504050000)
-				.to.changeTokenBalance(usdcToken, compoundFlashLoan.address, 4721996686 - 4504050000);
+				.withArgs(2623989940, 2502250000);
 
-			const earnReward = 4721996686 - 4504050000;
+			const earnReward = 2623989940 - 2502250000;
 
 			await expect(
 				compoundFlashLoan.connect(user2).withdraw(usdcToken.address, earnReward),
 			).to.changeTokenBalances(usdcToken, [compoundFlashLoan, user2], [-earnReward, earnReward]);
 
-			// console.log('Earn', 4721996686 - 4504050000);
-			// 217946686
-			// 4504050000;
-			// 4721996686;
-			// 4500000000;
+			// console.log('Earn', earnReward);
+			// 121739940
+			// 2502250000;
+			// 2623989940;
+			// 2500000000;
 		});
 	});
 });
