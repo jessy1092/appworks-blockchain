@@ -68,7 +68,7 @@ contract CompoundFlashLoan is IFlashLoanReceiver {
 		uint256[] calldata premiums,
 		address initiator,
 		bytes calldata params
-	) external override returns (bool) {
+	) external virtual override returns (bool) {
 		//
 		// This contract now has the funds requested.
 		// Your logic goes here.
