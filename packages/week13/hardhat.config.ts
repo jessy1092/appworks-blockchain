@@ -37,6 +37,8 @@ const config: HardhatUserConfig = {
 					: [],
 		},
 		hardhat: {
+			chainId: 1,
+			blockGasLimit: 150_000_000,
 			forking: {
 				url: `https://eth-mainnet.g.alchemy.com/v2/${process.env.ALCHEMY_FORK_API_KEY}`,
 				blockNumber: 15815693,
@@ -57,6 +59,10 @@ const config: HardhatUserConfig = {
 				outDir: 'test-types', // For hardhat testing usage
 				target: 'ethers-v5',
 		  },
+
+	mocha: {
+		timeout: 100000,
+	},
 };
 
 export default config;

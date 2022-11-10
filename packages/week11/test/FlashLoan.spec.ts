@@ -24,7 +24,7 @@ const UNIAddress = '0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984';
 
 const AAVELendingPoolAddressesProvider = '0xB53C1a33016B2DC2fF3653530bfF1848a515c8c5';
 const AAVELendingPool = '0x7d2768dE32b0b80b7a3454c06BdAc94A69DDc7A9';
-const AAVESwapRouter = '0xE592427A0AEce92De3Edee1F18E0157C05861564';
+const UniSwapRouter = '0xE592427A0AEce92De3Edee1F18E0157C05861564';
 
 describe('Flashloan', function () {
 	// We define a fixture to reuse the sayme setup in every test.
@@ -37,7 +37,7 @@ describe('Flashloan', function () {
 		const compoundFlashLoan = (await CompoundFlashLoanContract.deploy(
 			AAVELendingPoolAddressesProvider,
 			AAVELendingPool,
-			AAVESwapRouter,
+			UniSwapRouter,
 		)) as CompoundFlashLoan;
 
 		const lendingPool = await ethers.getContractAt(ILendingPoolData.abi, AAVELendingPool);

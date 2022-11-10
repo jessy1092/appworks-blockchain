@@ -48,6 +48,7 @@
 		"@aave/protocol-v2": "^1.0.1",
 		"@app-block/week11": "workspace:^",
 		"@openzeppelin/contracts": "^4.7.3",
+		"@uniswap/smart-order-router": "^2.10.1",
 		"@uniswap/v3-periphery": "^1.4.3",
 		"compound-protocol": "https://github.com/compound-finance/compound-protocol.git",
 		"web3": "^1.8.0"

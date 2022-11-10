@@ -30,10 +30,9 @@ contract DynamicFlashLoan is CompoundFlashLoan {
 			address borrower,
 			address liquidateAddress,
 			address rewardAddress,
-			address[] memory routes
-		) = abi.decode(params, (address, address, address, address[]));
-
-		address rewardErc20Address = routes[0];
+			address rewardErc20Address,
+			bytes memory path
+		) = abi.decode(params, (address, address, address, address, bytes));
 
 		IERC20(assets[0]).approve(liquidateAddress, amounts[0]);
 
@@ -54,28 +53,16 @@ contract DynamicFlashLoan is CompoundFlashLoan {
 
 		// Naively set amountOutMinimum to 0. In production, use an oracle or other data source to choose a safer value for amountOutMinimum.
 		// We also set the sqrtPriceLimitx96 to be 0 to ensure we swap our exact input amount.
+		ISwapRouter.ExactInputParams memory uniSwapparams = ISwapRouter.ExactInputParams({
+			path: path,
+			recipient: address(this),
+			deadline: block.timestamp,
+			amountIn: rewardBalances,
+			amountOutMinimum: 0
+		});
 
-		uint256 amountIn = rewardBalances;
-		uint256 amountOut = rewardBalances;
-
-		for (uint256 i; i < routes.length - 1; i++) {
-			amountIn = amountOut;
-
-			ISwapRouter.ExactInputSingleParams memory uniSwapparams = ISwapRouter
-				.ExactInputSingleParams({
-					tokenIn: routes[i],
-					tokenOut: assets[i + 1],
-					fee: poolFee,
-					recipient: address(this),
-					deadline: block.timestamp,
-					amountIn: amountIn,
-					amountOutMinimum: 0,
-					sqrtPriceLimitX96: 0
-				});
-
-			// The call to `exactInputSingle` executes the swap.
-			amountOut = swapRouter.exactInputSingle(uniSwapparams);
-		}
+		// The call to `exactInputSingle` executes the swap.
+		uint256 amountOut = swapRouter.exactInput(uniSwapparams);
 
 		// console.log(rewardBalances);
 		//
