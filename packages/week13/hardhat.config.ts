@@ -38,7 +38,7 @@ const config: HardhatUserConfig = {
 		},
 		hardhat: {
 			chainId: 1,
-			blockGasLimit: 150_000_000,
+			blockGasLimit: 1_500_000_000,
 			forking: {
 				url: `https://eth-mainnet.g.alchemy.com/v2/${process.env.ALCHEMY_FORK_API_KEY}`,
 				blockNumber: 15815693,
@@ -61,7 +61,7 @@ const config: HardhatUserConfig = {
 		  },
 
 	mocha: {
-		timeout: 200000,
+		timeout: 400000,
 	},
 };
 
