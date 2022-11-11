@@ -399,13 +399,6 @@ describe('Flashloan', function () {
 
 			const UNI = new Token(1, uniToken.address, 18, 'UNI', 'Uniswap');
 			const USDC = new Token(1, usdcToken.address, 6, 'USDC', 'USD Coin');
-			const ZRX = new Token(
-				1,
-				'0xE41d2489571d322189246DaFA5ebDe1F4699F498',
-				18,
-				'ZRX',
-				'0x Protocol Token',
-			);
 
 			const uniTokens = CurrencyAmount.fromRawAmount(UNI, seizeTokens.toString());
 
@@ -576,11 +569,11 @@ describe('Flashloan', function () {
 			// console.log(ethers.utils.solidityPack(combineRoutesTypes, combineRoutes));
 
 			expect(combineRoutes).to.eqls([
-				'0xE41d2489571d322189246DaFA5ebDe1F4699F498',
+				'0xE41d2489571d322189246DaFA5ebDe1F4699F498', // ZRX
 				3000,
-				'0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
+				'0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2', // WETH
 				500,
-				'0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+				'0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48', // USDC
 			]);
 
 			const abi = new ethers.utils.AbiCoder();
