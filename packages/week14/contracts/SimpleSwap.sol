@@ -4,12 +4,25 @@ pragma solidity 0.8.17;
 import { ISimpleSwap } from './interface/ISimpleSwap.sol';
 import { ERC20 } from '@openzeppelin/contracts/token/ERC20/ERC20.sol';
 
+// From https://github.com/AppWorks-School/Blockchain-Resource/tree/main/section3/SimpleSwap
+
 contract SimpleSwap is ISimpleSwap, ERC20 {
 	// Implement core logic here
 	address private immutable owner;
+	address public tokenA;
+	address public tokenB;
 
-	constructor(string memory name, string memory symbol) ERC20(name, symbol) {
+	constructor(address _tokenA, address _tokenB) ERC20('Simple Swap Token', 'SToken') {
 		owner = msg.sender;
+		require(_isContract(_tokenA), 'SimpleSwap: TOKENA_IS_NOT_CONTRACT');
+		require(_isContract(_tokenB), 'SimpleSwap: TOKENB_IS_NOT_CONTRACT');
+		require(_tokenA != _tokenB, 'SimpleSwap: TOKENA_TOKENB_IDENTICAL_ADDRESS');
+		tokenA = _tokenA;
+		tokenB = _tokenB;
+	}
+
+	function _isContract(address addr) private view returns (bool) {
+		return addr.code.length > 0;
 	}
 
 	/// @notice Swap tokenIn for tokenOut with amountIn
@@ -62,13 +75,13 @@ contract SimpleSwap is ISimpleSwap, ERC20 {
 
 	/// @notice Get the address of tokenA
 	/// @return tokenA The address of tokenA
-	function getTokenA() external view returns (address tokenA) {
-		return msg.sender;
+	function getTokenA() external view returns (address) {
+		return tokenA;
 	}
 
 	/// @notice Get the address of tokenB
 	/// @return tokenB The address of tokenB
-	function getTokenB() external view returns (address tokenB) {
-		return msg.sender;
+	function getTokenB() external view returns (address) {
+		return tokenB;
 	}
 }
