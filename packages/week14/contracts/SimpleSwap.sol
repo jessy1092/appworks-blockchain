@@ -53,9 +53,9 @@ contract SimpleSwap is ISimpleSwap, ERC20 {
 	function addLiquidity(uint256 amountAIn, uint256 amountBIn)
 		external
 		returns (
-			uint256 amountA,
-			uint256 amountB,
-			uint256 liquidity
+			uint256,
+			uint256,
+			uint256
 		)
 	{
 		require(amountAIn > 0 && amountBIn > 0, 'SimpleSwap: INSUFFICIENT_INPUT_AMOUNT');
@@ -64,27 +64,36 @@ contract SimpleSwap is ISimpleSwap, ERC20 {
 		tokenB.transferFrom(msg.sender, address(this), amountBIn);
 
 		uint256 _totalSupply = totalSupply();
+		uint256 liquidity = 0;
+		uint256 actualAmountA = amountAIn;
+		uint256 actualAmountB = amountBIn;
 
 		if (_totalSupply == 0) {
 			liquidity = Math.sqrt(amountAIn * amountBIn);
-
-			_mint(msg.sender, liquidity);
-
-			emit AddLiquidity(msg.sender, amountAIn, amountBIn, liquidity);
 		} else {
 			liquidity = Math.min(
-				(amountAIn / reserveA) * _totalSupply,
-				(amountBIn / reserveB) * _totalSupply
+				(amountAIn * _totalSupply) / reserveA,
+				(amountBIn * _totalSupply) / reserveB
 			);
 
-			_mint(msg.sender, liquidity);
+			actualAmountA = (liquidity * reserveA) / _totalSupply;
+			actualAmountB = (liquidity * reserveB) / _totalSupply;
 
-			emit AddLiquidity(msg.sender, amountAIn, amountBIn, liquidity);
+			if (amountAIn > actualAmountA) {
+				tokenA.transfer(msg.sender, amountAIn - actualAmountA);
+			} else if (amountBIn > actualAmountB) {
+				tokenB.transfer(msg.sender, amountBIn - actualAmountB);
+			}
 		}
+
+		_mint(msg.sender, liquidity);
+
+		emit AddLiquidity(msg.sender, actualAmountA, actualAmountB, liquidity);
+
 		reserveA = tokenA.balanceOf(address(this));
 		reserveB = tokenB.balanceOf(address(this));
 
-		return (reserveA, reserveB, liquidity);
+		return (actualAmountA, actualAmountB, liquidity);
 	}
 
 	/// @notice Remove liquidity from the pool
