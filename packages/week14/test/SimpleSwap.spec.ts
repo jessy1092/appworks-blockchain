@@ -511,5 +511,28 @@ describe('SimpleSwap Spec', () => {
 
 			expect(reserveA.mul(reserveB)).to.be.eq(K);
 		});
+
+		it('k value should be closed to the origin K', async () => {
+			const tokenIn = tokenA.address;
+			const tokenOut = tokenB.address;
+			const amountIn = parseUnits('33', tokenADecimals);
+			const amountOut = parseUnits('133', tokenADecimals);
+
+			await tokenA
+				.connect(taker)
+				.approve(simpleSwap.address, parseUnits('1000000', tokenADecimals));
+			await tokenB
+				.connect(taker)
+				.approve(simpleSwap.address, parseUnits('1000000', tokenADecimals));
+
+			for (let i = 0; i < 100; i++) {
+				await simpleSwap.connect(taker).swap(tokenIn, tokenOut, amountIn);
+				await simpleSwap.connect(taker).swap(tokenOut, tokenIn, amountOut);
+			}
+
+			const [reserveA, reserveB] = await simpleSwap.getReserves();
+
+			expect(reserveA.mul(reserveB)).to.be.closeTo(K, parseUnits('100', tokenBDecimals));
+		});
 	});
 });
