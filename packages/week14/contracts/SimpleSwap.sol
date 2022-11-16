@@ -127,11 +127,24 @@ contract SimpleSwap is ISimpleSwap, ERC20 {
 	/// @param liquidity The amount of liquidity to remove
 	/// @return amountA The amount of tokenA received
 	/// @return amountB The amount of tokenB received
-	function removeLiquidity(uint256 liquidity)
-		external
-		returns (uint256 amountA, uint256 amountB)
-	{
-		return (0, 0);
+	function removeLiquidity(uint256 liquidity) external returns (uint256, uint256) {
+		require(liquidity > 0, 'SimpleSwap: INSUFFICIENT_LIQUIDITY_BURNED');
+
+		uint256 _totalSupply = totalSupply();
+		uint256 amountA = (liquidity * reserveA) / _totalSupply;
+		uint256 amountB = (liquidity * reserveB) / _totalSupply;
+
+		_transfer(msg.sender, address(this), liquidity);
+		_burn(address(this), liquidity);
+
+		tokenA.transfer(msg.sender, amountA);
+		tokenB.transfer(msg.sender, amountB);
+
+		emit RemoveLiquidity(msg.sender, amountA, amountB, liquidity);
+
+		_updateReserves();
+
+		return (amountA, amountB);
 	}
 
 	function _updateReserves() private {
