@@ -40,8 +40,35 @@ contract SimpleSwap is ISimpleSwap, ERC20 {
 		address tokenIn,
 		address tokenOut,
 		uint256 amountIn
-	) external returns (uint256 amountOut) {
-		return 0;
+	) external returns (uint256) {
+		require(
+			_isContract(tokenIn) && (address(tokenA) == tokenIn || address(tokenB) == tokenIn),
+			'SimpleSwap: INVALID_TOKEN_IN'
+		);
+		require(
+			_isContract(tokenOut) && (address(tokenA) == tokenOut || address(tokenB) == tokenOut),
+			'SimpleSwap: INVALID_TOKEN_OUT'
+		);
+		require(tokenIn != tokenOut, 'SimpleSwap: IDENTICAL_ADDRESS');
+		require(amountIn > 0, 'SimpleSwap: INSUFFICIENT_INPUT_AMOUNT');
+
+		uint256 reserveTokenIn = ERC20(tokenIn).balanceOf(address(this));
+		uint256 reserveTokenOut = ERC20(tokenOut).balanceOf(address(this));
+
+		uint256 diffK = reserveTokenOut * (reserveTokenIn + amountIn) - lastK;
+
+		uint256 amountOut = diffK / (reserveTokenIn + amountIn);
+
+		require(amountOut > 0, 'SimpleSwap: INSUFFICIENT_OUTPUT_AMOUNT');
+
+		ERC20(tokenIn).transferFrom(msg.sender, address(this), amountIn);
+		ERC20(tokenOut).transfer(msg.sender, amountOut);
+
+		emit Swap(msg.sender, tokenIn, tokenOut, amountIn, amountOut);
+
+		_updateReserves();
+
+		return amountOut;
 	}
 
 	/// @notice Add liquidity to the pool
@@ -70,6 +97,7 @@ contract SimpleSwap is ISimpleSwap, ERC20 {
 
 		if (_totalSupply == 0) {
 			liquidity = Math.sqrt(amountAIn * amountBIn);
+			lastK = amountAIn * amountBIn;
 		} else {
 			liquidity = Math.min(
 				(amountAIn * _totalSupply) / reserveA,
@@ -90,8 +118,7 @@ contract SimpleSwap is ISimpleSwap, ERC20 {
 
 		emit AddLiquidity(msg.sender, actualAmountA, actualAmountB, liquidity);
 
-		reserveA = tokenA.balanceOf(address(this));
-		reserveB = tokenB.balanceOf(address(this));
+		_updateReserves();
 
 		return (actualAmountA, actualAmountB, liquidity);
 	}
@@ -105,6 +132,11 @@ contract SimpleSwap is ISimpleSwap, ERC20 {
 		returns (uint256 amountA, uint256 amountB)
 	{
 		return (0, 0);
+	}
+
+	function _updateReserves() private {
+		reserveA = tokenA.balanceOf(address(this));
+		reserveB = tokenB.balanceOf(address(this));
 	}
 
 	/// @notice Get the reserves of the pool
