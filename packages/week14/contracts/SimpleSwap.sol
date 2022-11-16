@@ -10,7 +10,6 @@ import { Math } from '@openzeppelin/contracts/utils/math/Math.sol';
 contract SimpleSwap is ISimpleSwap, ERC20 {
 	// Implement core logic here
 
-	address private immutable owner;
 	ERC20 public tokenA;
 	ERC20 public tokenB;
 	uint256 public lastK;
@@ -19,7 +18,6 @@ contract SimpleSwap is ISimpleSwap, ERC20 {
 	uint256 public reserveB;
 
 	constructor(address _tokenA, address _tokenB) ERC20('Simple Swap Token', 'SToken') {
-		owner = msg.sender;
 		require(_isContract(address(_tokenA)), 'SimpleSwap: TOKENA_IS_NOT_CONTRACT');
 		require(_isContract(address(_tokenB)), 'SimpleSwap: TOKENB_IS_NOT_CONTRACT');
 		require(_tokenA != _tokenB, 'SimpleSwap: TOKENA_TOKENB_IDENTICAL_ADDRESS');
@@ -52,6 +50,8 @@ contract SimpleSwap is ISimpleSwap, ERC20 {
 		require(tokenIn != tokenOut, 'SimpleSwap: IDENTICAL_ADDRESS');
 		require(amountIn > 0, 'SimpleSwap: INSUFFICIENT_INPUT_AMOUNT');
 
+		address sender = _msgSender();
+
 		uint256 reserveTokenIn = ERC20(tokenIn).balanceOf(address(this));
 		uint256 reserveTokenOut = ERC20(tokenOut).balanceOf(address(this));
 
@@ -61,10 +61,10 @@ contract SimpleSwap is ISimpleSwap, ERC20 {
 
 		require(amountOut > 0, 'SimpleSwap: INSUFFICIENT_OUTPUT_AMOUNT');
 
-		ERC20(tokenIn).transferFrom(msg.sender, address(this), amountIn);
-		ERC20(tokenOut).transfer(msg.sender, amountOut);
+		ERC20(tokenIn).transferFrom(sender, address(this), amountIn);
+		ERC20(tokenOut).transfer(sender, amountOut);
 
-		emit Swap(msg.sender, tokenIn, tokenOut, amountIn, amountOut);
+		emit Swap(sender, tokenIn, tokenOut, amountIn, amountOut);
 
 		_updateReserves();
 
@@ -87,8 +87,10 @@ contract SimpleSwap is ISimpleSwap, ERC20 {
 	{
 		require(amountAIn > 0 && amountBIn > 0, 'SimpleSwap: INSUFFICIENT_INPUT_AMOUNT');
 
-		tokenA.transferFrom(msg.sender, address(this), amountAIn);
-		tokenB.transferFrom(msg.sender, address(this), amountBIn);
+		address sender = _msgSender();
+
+		tokenA.transferFrom(sender, address(this), amountAIn);
+		tokenB.transferFrom(sender, address(this), amountBIn);
 
 		uint256 _totalSupply = totalSupply();
 		uint256 liquidity = 0;
@@ -108,15 +110,15 @@ contract SimpleSwap is ISimpleSwap, ERC20 {
 			actualAmountB = (liquidity * reserveB) / _totalSupply;
 
 			if (amountAIn > actualAmountA) {
-				tokenA.transfer(msg.sender, amountAIn - actualAmountA);
+				tokenA.transfer(sender, amountAIn - actualAmountA);
 			} else if (amountBIn > actualAmountB) {
-				tokenB.transfer(msg.sender, amountBIn - actualAmountB);
+				tokenB.transfer(sender, amountBIn - actualAmountB);
 			}
 		}
 
-		_mint(msg.sender, liquidity);
+		_mint(sender, liquidity);
 
-		emit AddLiquidity(msg.sender, actualAmountA, actualAmountB, liquidity);
+		emit AddLiquidity(sender, actualAmountA, actualAmountB, liquidity);
 
 		_updateReserves();
 
@@ -130,17 +132,18 @@ contract SimpleSwap is ISimpleSwap, ERC20 {
 	function removeLiquidity(uint256 liquidity) external returns (uint256, uint256) {
 		require(liquidity > 0, 'SimpleSwap: INSUFFICIENT_LIQUIDITY_BURNED');
 
+		address sender = _msgSender();
 		uint256 _totalSupply = totalSupply();
 		uint256 amountA = (liquidity * reserveA) / _totalSupply;
 		uint256 amountB = (liquidity * reserveB) / _totalSupply;
 
-		_transfer(msg.sender, address(this), liquidity);
+		_transfer(sender, address(this), liquidity);
 		_burn(address(this), liquidity);
 
-		tokenA.transfer(msg.sender, amountA);
-		tokenB.transfer(msg.sender, amountB);
+		tokenA.transfer(sender, amountA);
+		tokenB.transfer(sender, amountB);
 
-		emit RemoveLiquidity(msg.sender, amountA, amountB, liquidity);
+		emit RemoveLiquidity(sender, amountA, amountB, liquidity);
 
 		_updateReserves();
 
