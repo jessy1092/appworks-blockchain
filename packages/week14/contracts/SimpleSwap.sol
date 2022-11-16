@@ -3,22 +3,28 @@ pragma solidity 0.8.17;
 
 import { ISimpleSwap } from './interface/ISimpleSwap.sol';
 import { ERC20 } from '@openzeppelin/contracts/token/ERC20/ERC20.sol';
+import { Math } from '@openzeppelin/contracts/utils/math/Math.sol';
 
 // From https://github.com/AppWorks-School/Blockchain-Resource/tree/main/section3/SimpleSwap
 
 contract SimpleSwap is ISimpleSwap, ERC20 {
 	// Implement core logic here
+
 	address private immutable owner;
-	address public tokenA;
-	address public tokenB;
+	ERC20 public tokenA;
+	ERC20 public tokenB;
+	uint256 public lastK;
+
+	uint256 public reserveA;
+	uint256 public reserveB;
 
 	constructor(address _tokenA, address _tokenB) ERC20('Simple Swap Token', 'SToken') {
 		owner = msg.sender;
-		require(_isContract(_tokenA), 'SimpleSwap: TOKENA_IS_NOT_CONTRACT');
-		require(_isContract(_tokenB), 'SimpleSwap: TOKENB_IS_NOT_CONTRACT');
+		require(_isContract(address(_tokenA)), 'SimpleSwap: TOKENA_IS_NOT_CONTRACT');
+		require(_isContract(address(_tokenB)), 'SimpleSwap: TOKENB_IS_NOT_CONTRACT');
 		require(_tokenA != _tokenB, 'SimpleSwap: TOKENA_TOKENB_IDENTICAL_ADDRESS');
-		tokenA = _tokenA;
-		tokenB = _tokenB;
+		tokenA = ERC20(_tokenA);
+		tokenB = ERC20(_tokenB);
 	}
 
 	function _isContract(address addr) private view returns (bool) {
@@ -52,7 +58,33 @@ contract SimpleSwap is ISimpleSwap, ERC20 {
 			uint256 liquidity
 		)
 	{
-		return (0, 0, 0);
+		require(amountAIn > 0 && amountBIn > 0, 'SimpleSwap: INSUFFICIENT_INPUT_AMOUNT');
+
+		tokenA.transferFrom(msg.sender, address(this), amountAIn);
+		tokenB.transferFrom(msg.sender, address(this), amountBIn);
+
+		uint256 _totalSupply = totalSupply();
+
+		if (_totalSupply == 0) {
+			liquidity = Math.sqrt(amountAIn * amountBIn);
+
+			_mint(msg.sender, liquidity);
+
+			emit AddLiquidity(msg.sender, amountAIn, amountBIn, liquidity);
+		} else {
+			liquidity = Math.min(
+				(amountAIn / reserveA) * _totalSupply,
+				(amountBIn / reserveB) * _totalSupply
+			);
+
+			_mint(msg.sender, liquidity);
+
+			emit AddLiquidity(msg.sender, amountAIn, amountBIn, liquidity);
+		}
+		reserveA = tokenA.balanceOf(address(this));
+		reserveB = tokenB.balanceOf(address(this));
+
+		return (reserveA, reserveB, liquidity);
 	}
 
 	/// @notice Remove liquidity from the pool
@@ -69,19 +101,19 @@ contract SimpleSwap is ISimpleSwap, ERC20 {
 	/// @notice Get the reserves of the pool
 	/// @return reserveA The reserve of tokenA
 	/// @return reserveB The reserve of tokenB
-	function getReserves() external view returns (uint256 reserveA, uint256 reserveB) {
-		return (0, 0);
+	function getReserves() external view returns (uint256, uint256) {
+		return (reserveA, reserveB);
 	}
 
 	/// @notice Get the address of tokenA
 	/// @return tokenA The address of tokenA
 	function getTokenA() external view returns (address) {
-		return tokenA;
+		return address(tokenA);
 	}
 
 	/// @notice Get the address of tokenB
 	/// @return tokenB The address of tokenB
 	function getTokenB() external view returns (address) {
-		return tokenB;
+		return address(tokenB);
 	}
 }
