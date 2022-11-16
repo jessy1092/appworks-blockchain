@@ -18,8 +18,8 @@ contract SimpleSwap is ISimpleSwap, ERC20 {
 	uint256 public reserveB;
 
 	constructor(address _tokenA, address _tokenB) ERC20('Simple Swap Token', 'SToken') {
-		require(_isContract(address(_tokenA)), 'SimpleSwap: TOKENA_IS_NOT_CONTRACT');
-		require(_isContract(address(_tokenB)), 'SimpleSwap: TOKENB_IS_NOT_CONTRACT');
+		require(_isContract(_tokenA), 'SimpleSwap: TOKENA_IS_NOT_CONTRACT');
+		require(_isContract(_tokenB), 'SimpleSwap: TOKENB_IS_NOT_CONTRACT');
 		require(_tokenA != _tokenB, 'SimpleSwap: TOKENA_TOKENB_IDENTICAL_ADDRESS');
 		tokenA = ERC20(_tokenA);
 		tokenB = ERC20(_tokenB);
@@ -64,9 +64,9 @@ contract SimpleSwap is ISimpleSwap, ERC20 {
 		ERC20(tokenIn).transferFrom(sender, address(this), amountIn);
 		ERC20(tokenOut).transfer(sender, amountOut);
 
-		emit Swap(sender, tokenIn, tokenOut, amountIn, amountOut);
-
 		_updateReserves();
+
+		emit Swap(sender, tokenIn, tokenOut, amountIn, amountOut);
 
 		return amountOut;
 	}
@@ -88,10 +88,6 @@ contract SimpleSwap is ISimpleSwap, ERC20 {
 		require(amountAIn > 0 && amountBIn > 0, 'SimpleSwap: INSUFFICIENT_INPUT_AMOUNT');
 
 		address sender = _msgSender();
-
-		tokenA.transferFrom(sender, address(this), amountAIn);
-		tokenB.transferFrom(sender, address(this), amountBIn);
-
 		uint256 _totalSupply = totalSupply();
 		uint256 liquidity = 0;
 		uint256 actualAmountA = amountAIn;
@@ -108,19 +104,16 @@ contract SimpleSwap is ISimpleSwap, ERC20 {
 
 			actualAmountA = (liquidity * reserveA) / _totalSupply;
 			actualAmountB = (liquidity * reserveB) / _totalSupply;
-
-			if (amountAIn > actualAmountA) {
-				tokenA.transfer(sender, amountAIn - actualAmountA);
-			} else if (amountBIn > actualAmountB) {
-				tokenB.transfer(sender, amountBIn - actualAmountB);
-			}
 		}
+
+		tokenA.transferFrom(sender, address(this), actualAmountA);
+		tokenB.transferFrom(sender, address(this), actualAmountB);
+
+		_updateReserves();
 
 		_mint(sender, liquidity);
 
 		emit AddLiquidity(sender, actualAmountA, actualAmountB, liquidity);
-
-		_updateReserves();
 
 		return (actualAmountA, actualAmountB, liquidity);
 	}
@@ -143,9 +136,9 @@ contract SimpleSwap is ISimpleSwap, ERC20 {
 		tokenA.transfer(sender, amountA);
 		tokenB.transfer(sender, amountB);
 
-		emit RemoveLiquidity(sender, amountA, amountB, liquidity);
-
 		_updateReserves();
+
+		emit RemoveLiquidity(sender, amountA, amountB, liquidity);
 
 		return (amountA, amountB);
 	}
