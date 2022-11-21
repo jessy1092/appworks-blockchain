@@ -74,6 +74,9 @@ contract CompoundFlashLoan is IFlashLoanReceiver {
 		// Your logic goes here.
 		//
 
+		require(initiator == admin, 'Should be admin execute');
+		require(msg.sender == LENDING_POOL, 'Should be call by LENDING_POOL');
+
 		(
 			address borrower,
 			address liquidateAddress,
